@@ -1,0 +1,41 @@
+<div class="header">
+    <div class="container">
+        <div class="horiz-list">
+            <h3>
+                Pathfinding Visualizer
+            </h3>
+            <div class="hover">
+                <div class="list">Algorithms<div class="arrow down"></div></div>
+                <ul class="dropdown">
+                    <li *ngFor="let item of algorithms; let i = index" value="{{i}}">{{item}}</li>
+                </ul>
+            </div>
+            <div class="hover">
+                <div class="list">Mazes & Patterns<div class="arrow down"></div></div>
+            </div>
+            <div>
+                Add Bomb
+            </div>
+            <div id="vis-btn">
+                <div (click)="visualize()">
+                    Visualize!
+                </div>
+            </div>
+            <div>
+                Clear Board
+            </div>
+            <div>
+                Clear Walls & Weight
+            </div>
+            <div>
+                Clear Path
+            </div>
+            <div class="hover">
+                <div class="list">Speed:{{selectedSpeed}}<div class="arrow down"></div></div>
+                <ul class="dropdown">
+                    <li *ngFor="let item of speed" (click)="setSpeed(item)">{{item}}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

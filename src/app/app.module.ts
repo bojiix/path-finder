@@ -3,10 +3,16 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { TopHeaderComponent } from './top-header/top-header.component';
+import { ObjectsHeaderComponent } from './objects-header/objects-header.component';
+import { GridComponent } from './grid/grid.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    TopHeaderComponent,
+    ObjectsHeaderComponent,
+    GridComponent
   ],
   imports: [
     BrowserModule,
