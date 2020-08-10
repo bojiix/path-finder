@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterContentInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, Renderer2 } from '@angular/core';
 
 @Component({
   selector: 'app-grid',
@@ -7,15 +7,11 @@ import { Component, OnInit, ViewChild, ElementRef, AfterContentInit, AfterViewIn
 })
 export class GridComponent implements OnInit, AfterViewInit {
 
-  @ViewChild("grid") grid: ElementRef;
+  @ViewChild('grid') grid: ElementRef;
 
-  constructor() { }
+  constructor(private renderer: Renderer2, private elementRef: ElementRef) { }
 
   ngOnInit() {
-  }
-
-  ngAfterContentInit() {
-    this.createGrid();
   }
 
   ngAfterViewInit(){
@@ -23,6 +19,19 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   createGrid() {
-    console.log(this.grid.nativeElement.innerHtml);
+
+    const nWidth = this.grid.nativeElement.offsetWidth;
+    console.log(nWidth);
+
+    for(let i = 0; i < nWidth / 13; i++) {
+
+      const block = this.renderer.createElement('div');
+      block.setAttribute("class", "grid-block");
+      if(i != 0) {
+        
+        block.setAttribute("style", "transform: translateX(-" + i + "px)");
+      }
+      this.renderer.appendChild(this.grid.nativeElement, block);
+    }
   }
 }
