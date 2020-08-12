@@ -5,12 +5,8 @@
 }
 
 .container {
-    width: 80%;
+    width: 95%;
     margin: 0 auto;
-}
-
-.grid-container {
-    width: 100%;
 }
 
 #grid {
@@ -19,9 +15,8 @@
 
 .grid-block {
     cursor: pointer;
-    float: left;
-    border: solid rgb(13, 45, 59);
-    border-width: 1px 1px 1px 1px;
+    border: 1px solid rgb(13, 45, 59);
+    //border-width: 1px 1px 1px 1px;
     padding: 12px;
     display: inline-block;
 }

@@ -1,8 +1,6 @@
 <div class="grid-section">
     <div class="container">
-        <div class="grid-container">
-            <div #grid id="grid">
-            </div>
+        <div #grid id="grid" (window:resize)="onResize($event)">
         </div>
     </div>
 </div>
