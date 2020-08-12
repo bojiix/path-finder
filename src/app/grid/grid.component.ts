@@ -18,7 +18,7 @@ export class GridComponent implements OnInit, AfterViewInit {
 
     Grid.grid = this.grid;
     this.createGrid();
-    this.runWorker();
+    //this.runWorker();
   }
 
   runWorker() {
@@ -43,22 +43,39 @@ export class GridComponent implements OnInit, AfterViewInit {
   createGrid() {
 
     const nWidth = this.grid.nativeElement.offsetWidth;
+    
+    let blockSize;
 
-    for(let i = 0; i < 3; i++) {
-      for(let j = 0; j < nWidth / 26 - 1; j++) {
+    let block = this.renderer.createElement('div');
+    block.setAttribute("class", "grid-block");
+    this.renderer.appendChild(this.grid.nativeElement, block);
+
+    block = this.grid.nativeElement.children[0];
+    blockSize = (<any>block).offsetWidth;
+    blockSize = parseFloat(window.getComputedStyle(block).width);
+
+    console.log(blockSize);
+
+    const hLength = nWidth / blockSize - 1;
+
+    for(let i = 0; i < 20; i++) {
+      for(let j = 0; j < hLength; j++) {
+
+        if(i == 0 && j == 0)
+          continue;
 
         const block = this.renderer.createElement('div');
         block.setAttribute("class", "grid-block");
-        if(j != 0) {
+        // if(j != 0) {
           
-          if(i != 0)
-            block.setAttribute("style", "transform: translate(-" + j + "px, -" + i + "px)");
-          else
-            block.setAttribute("style", "transform: translateX(-" + j + "px)");
-        }else {
-          if(i != 0)
-            block.setAttribute("style", "transform: translateY(-" + i + "px)");
-        }
+        //   if(i != 0)
+        //     block.setAttribute("style", "transform: translate(-" + j + "px, -" + (i * 5) + "px)");
+        //   else
+        //     block.setAttribute("style", "transform: translateX(-" + j + "px)");
+        // }else {
+        //   if(i != 0)
+        //     block.setAttribute("style", "transform: translateY(-" + (i * 5) + "px)");
+        // }
         this.renderer.appendChild(this.grid.nativeElement, block);
       }
     }
