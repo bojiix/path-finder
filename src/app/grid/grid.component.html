@@ -1,7 +1,8 @@
 <div class="grid-section">
     <div class="container">
-        <div #grid id="grid" (window:resize)="onResize($event)">
+        <div #grid id="grid" (window:resize)="onResize($event)" style="position: relative;">
             <div id="draggables"></div>
         </div>
     </div>
+    {{option}}
 </div>

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DraggablesService } from '../services/draggables.service'
 
 @Component({
   selector: 'app-objects-header',
@@ -7,9 +8,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ObjectsHeaderComponent implements OnInit {
 
-  constructor() { }
+  option:string;
+
+  constructor(private dragService: DraggablesService) { }
 
   ngOnInit() {
+    this.dragService.currentOption.subscribe(option => {
+      this.option = option;
+    });
+  }
+
+  changeOption(option:string) {
+    this.dragService.setDraggable(option);
   }
 
 }

@@ -17,41 +17,57 @@
 .horiz-list {
     width: 100%;
     display: block;
-}
-
-.horiz-list  {
-    & > div, & > h3 {
+    & > div, h3 {
         display: inline-block;
         margin-right: 10px;
+        &:last-of-type {
+            margin-right: 0;
+            margin-left: 10px;
+        }
     }
-    & > div {
-        padding: 24px 18px;
-        cursor: pointer;
+    h3 {
+        margin-left: 0 !important;
+        margin-right: 10px !important;
     }
     & > #vis-btn {
         padding: 0;
+        div {
+            cursor: pointer;
+            padding: 10px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            font-family: consolas;
+            background-color: rgb(92, 211, 165);
+            padding: 13px;
+            border-radius: 5px;
+            transition: .2s;
+            border: none;
+            text-align: center;
+            text-decoration: none;
+            &:active {
+                background-color: rgb(52, 136, 103);
+            }
+        }
     }
-    & > div:last-of-type {
-        margin-right: 0;
+    #left > *, #right > * {
+        display: inline-block;
+        cursor: pointer;
     }
-}
-
-#vis-btn > div {
-    cursor: pointer;
-    padding: 10px;
-    color: #fff;
-    font-size: 20px;
-    font-weight: bold;
-    font-family: consolas;
-    background-color: rgb(92, 211, 165);
-    padding: 13px;
-    border-radius: 5px;
-    transition: .2s;
-    border: none;
-    text-align: center;
-    text-decoration: none;
-    &:active {
-        background-color: rgb(52, 136, 103);
+    #left {
+        & > *:last-child {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+    }
+    #right {
+        & > * {
+            margin-left: 10px;
+            margin-right: 10px;
+            &:last-child {
+                margin: 0;
+            }
+        }
     }
 }
 
@@ -66,11 +82,12 @@
 }
 
 .down {
-    transform: rotate(45deg);
+    transform: translateY(-3px) rotate(45deg);
 }
 
 .hover {
     cursor: pointer;
+    padding: 24px 18px;
     &:hover {
         background-color: rgb(92, 211, 165);
         .dropdown {
@@ -101,5 +118,42 @@
             border-bottom-left-radius: 10px;
             border-bottom-right-radius: 10px;
         }
+    }
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+    
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+    
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+    
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+    
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+
+}
+
+@media only screen and (max-width: 1690px) {
+    #right {
+        display: none;    
+        & > * {
+            display: block !important;
+        }   
+    }
+    #left {
+
     }
 }

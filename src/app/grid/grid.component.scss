@@ -35,3 +35,10 @@
         background-color: rgba(43, 42, 92, 0.15);
     }
 }
+
+#draggables {
+    position: absolute;    
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}

@@ -1,23 +1,23 @@
 <div class="header">
     <div class="container">
         <div class="horiz-list">
-            <div class="draggable">
+            <div class="draggable" (click)="changeOption('start-node')">
                 <div class="start-node"></div>
                 Start Node
             </div>
-            <div class="draggable">
+            <div class="draggable" (click)="changeOption('square end-node')">
                 <div class="square end-node">
                     <div></div>
                 </div>
                 Target Node
             </div>
-            <div class="draggable">
+            <div class="draggable" (click)="changeOption('square bomb-node')">
                 <div class="square bomb-node">
-                    <p>!</p>
+                    <div>!</div>
                 </div>
                 Bomb Node
             </div>
-            <div class="draggable">
+            <div class="draggable" (click)="changeOption('square weight-node')">
                 <div class="square weight-node">
                     <div></div>
                 </div>

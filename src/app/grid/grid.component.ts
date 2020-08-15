@@ -1,22 +1,47 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, Renderer2 } from '@angular/core';
+import { DraggablesService } from '../services/draggables.service';
 
 @Component({
   selector: 'app-grid',
   templateUrl: './grid.component.html',
-  styleUrls: ['./grid.component.scss']
+  styleUrls: [
+    './grid.component.scss',
+    '../objects-header/objects-header.component.scss'
+  ]
 })
 export class GridComponent implements OnInit, AfterViewInit {
 
   @ViewChild('grid') grid: ElementRef;
+  option:string;
+  draggables = {};
 
-  constructor(private renderer: Renderer2, private elementRef: ElementRef) { }
+  constructor(private renderer: Renderer2, 
+              private elementRef: ElementRef,
+              private dragService: DraggablesService) { }
 
   ngOnInit() {
+    this.dragService.currentOption.subscribe(option => {
+      this.option = option;
+      if(!(option in this.draggables) && option != '') {
+        this.draggables[option] = 1;
+        console.log(this.draggables[option]);
+        let block = this.renderer.createElement('div');
+        block.setAttribute("class", option);
+        block.setAttribute("style", "position: absolute");
+        let block1 = this.renderer.createElement('div');
+        if(option == "square bomb-node")
+          block1.innerHTML = "!";
+        this.renderer.appendChild(block, block1);
+        this.renderer.appendChild(this.grid.nativeElement.children[0], block);
+      }else {
+
+      }
+    });
   }
 
   ngAfterViewInit(){
 
-    Grid.grid = this.grid;
+    //Grid.grid = this.grid;
     this.createGrid();
     //this.runWorker();
   }
@@ -34,8 +59,18 @@ export class GridComponent implements OnInit, AfterViewInit {
     }
   }
 
+  alert() {
+
+    if(window.confirm("Beware!") == true) {
+      console.log("zoom");
+    }else {
+      console.log("not zoom");
+    }
+  }
+
   onResize(event) {
 
+    //this.alert();
     this.destroyGrid();
     this.createGrid();
   }
