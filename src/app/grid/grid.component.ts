@@ -24,19 +24,48 @@ export class GridComponent implements OnInit, AfterViewInit {
       this.option = option;
       if(!(option in this.draggables) && option != '') {
         this.draggables[option] = 1;
-        console.log(this.draggables[option]);
         let block = this.renderer.createElement('div');
         block.setAttribute("class", option);
-        block.setAttribute("style", "position: absolute");
+        block.setAttribute("style", "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
         let block1 = this.renderer.createElement('div');
         if(option == "square bomb-node")
           block1.innerHTML = "!";
-        this.renderer.appendChild(block, block1);
-        this.renderer.appendChild(this.grid.nativeElement.children[0], block);
+        if(option != "start-node")
+          this.renderer.appendChild(block, block1);
+
+        let first = true, to_break = false;
+        const rows = Array.from(this.grid.nativeElement.children);
+
+        for (let row of rows) {
+          if(!first) {
+            const rowArray = Array.from((<any>row).children);
+            for (let toAddInBlock of rowArray) {
+              const children = Array.from((<any>toAddInBlock).children);
+              if(children.length == 0) {
+
+                to_break = true;
+                let parent = this.renderer.createElement('div');
+                parent.setAttribute("class", "draggable");
+                block.addEventListener("click", (e:Event) => this.test(toAddInBlock)); 
+                this.renderer.appendChild(parent, block);
+                this.renderer.appendChild(toAddInBlock, parent);
+                break;
+              }
+            }
+          }else {
+            first = false;
+          }
+          if(to_break == true)
+            break;
+        }
       }else {
 
       }
     });
+  }
+
+  test(content) {
+    console.log(content);
   }
 
   ngAfterViewInit(){
@@ -136,6 +165,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         first = false;
       }
     });
+    this.draggables = {};
   }
 }
 

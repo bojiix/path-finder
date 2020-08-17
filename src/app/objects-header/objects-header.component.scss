@@ -104,6 +104,10 @@ $sq-sz: 18px;
     }
 }
 
+.vertical-line {
+    opacity: 0.5;
+}
+
 .unvisited {
     border: 1px solid #000;
     transform: translateY(4px);
@@ -162,6 +166,8 @@ $wall: rgb(85, 33, 33);
 
 }
 
-@media only screen and (max-width: 1620px) {
-    
+@media only screen and (max-width: 1650px) {
+    .vertical-line, .unselectables {
+        display: none !important;
+    }
 }
