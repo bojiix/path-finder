@@ -14,15 +14,27 @@ export class GridComponent implements OnInit, AfterViewInit {
   @ViewChild('grid') grid: ElementRef;
   option:string;
   draggables = {};
+  dragged;
+  windowWidth;
 
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
               private dragService: DraggablesService) { }
 
+  ngAfterViewInit(){
+    //Grid.grid = this.grid;
+    this.createGrid();
+    //this.runWorker();
+  }
+
   ngOnInit() {
+    this.addOption();
+  }
+
+  addOption() {
     this.dragService.currentOption.subscribe(option => {
       this.option = option;
-      if(!(option in this.draggables) && option != '') {
+      if(!(option in this.draggables) && option != '' || (option in this.draggables && option != "start-node" && option != "square end-node")) {
         this.draggables[option] = 1;
         let block = this.renderer.createElement('div');
         block.setAttribute("class", option);
@@ -45,8 +57,9 @@ export class GridComponent implements OnInit, AfterViewInit {
 
                 to_break = true;
                 let parent = this.renderer.createElement('div');
+                parent.setAttribute("draggable", "true");
                 parent.setAttribute("class", "draggable");
-                block.addEventListener("click", (e:Event) => this.test(toAddInBlock)); 
+                parent.addEventListener("dragstart", (e:Event) => this.onDragStart(e), true);
                 this.renderer.appendChild(parent, block);
                 this.renderer.appendChild(toAddInBlock, parent);
                 break;
@@ -64,49 +77,11 @@ export class GridComponent implements OnInit, AfterViewInit {
     });
   }
 
-  test(content) {
-    console.log(content);
-  }
-
-  ngAfterViewInit(){
-
-    //Grid.grid = this.grid;
-    this.createGrid();
-    //this.runWorker();
-  }
-
-  runWorker() {
-
-    if (typeof Worker !== 'undefined') {
-      const worker = new Worker('./grid.worker', {
-        type: 'module',
-      });
-      worker.onmessage = ({ data }) => {
-      };
-      worker.postMessage(this.grid.nativeElement.offsetWidth);
-    } else {
-    }
-  }
-
-  alert() {
-
-    if(window.confirm("Beware!") == true) {
-      console.log("zoom");
-    }else {
-      console.log("not zoom");
-    }
-  }
-
-  onResize(event) {
-
-    //this.alert();
-    this.destroyGrid();
-    this.createGrid();
-  }
-
   createGrid() {
     
     let blockSize;
+
+    this.windowWidth = window.innerWidth;
 
     let firstBlock = this.renderer.createElement('div');
     firstBlock.setAttribute("class", "grid-block");
@@ -129,10 +104,14 @@ export class GridComponent implements OnInit, AfterViewInit {
 
         if(i == 0 && j == 0) {
           this.renderer.appendChild(row, firstBlock);
+          firstBlock.addEventListener("dragover", (e:Event) => this.onDragOver(e), true);
+          firstBlock.addEventListener("drop", (e:Event) => this.onDrop(e), true);
           continue;
         }
         const block = this.renderer.createElement('div');
         block.setAttribute("class", "grid-block");
+        block.addEventListener("dragover", (e:Event) => this.onDragOver(e), true);
+        block.addEventListener("drop", (e:Event) => this.onDrop(e), true);
 
         var att = document.createAttribute("style"); 
         let r = 0, b = 0;
@@ -167,14 +146,68 @@ export class GridComponent implements OnInit, AfterViewInit {
     });
     this.draggables = {};
   }
-}
 
-export class Grid {
+  alert() {
+    if(window.confirm("Beware!") == true) {
+      console.log("zoom");
+    }else {
+      console.log("not zoom");
+    }
+  }
 
-  static grid: ElementRef;
+  onResize(event) {
+    if(this.windowWidth == window.innerWidth) 
+      return;
+    //this.alert();
+    this.windowWidth = window.innerWidth;
+    this.destroyGrid();
+    this.createGrid();
+  }
 
-  static getWidth() {
+  onDragStart(event) {
+    if(event instanceof DragEvent) {
+      event.stopPropagation();
+      //event.preventDefault();
+    }
+    this.dragged = event.target;
+  }
 
-    return Grid.grid.nativeElement.offsetWidth;
+  onDragOver(event) {
+    if(event instanceof DragEvent) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
+  onDrop(test) {
+    if(event instanceof DragEvent) {
+      event.stopPropagation();
+      //event.preventDefault();
+    }else
+      return;
+
+    console.log(this.dragged.parentNode, event.target);
+
+    if(this.dragged.parentNode == event.target)
+      return;
+    this.dragged.parentNode.removeChild(this.dragged);
+    (<any>event.target).appendChild(this.dragged);
+  }
+
+
+
+  ////
+
+  runWorker() {
+
+    if (typeof Worker !== 'undefined') {
+      const worker = new Worker('./grid.worker', {
+        type: 'module',
+      });
+      worker.onmessage = ({ data }) => {
+      };
+      worker.postMessage(this.grid.nativeElement.offsetWidth);
+    } else {
+    }
   }
 }
