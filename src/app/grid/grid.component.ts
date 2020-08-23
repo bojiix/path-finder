@@ -16,6 +16,9 @@ export class GridComponent implements OnInit, AfterViewInit {
   draggables = {};
   dragged;
   windowWidth;
+  freq_table:(string | number)[][];
+  node_type:string[] = ['start', 'end', 'bomb', 'weight', 'wall'];////!!!!!!!!!!???
+  mousedown:boolean = false;
 
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
@@ -29,18 +32,25 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.addOption();
+    /*window.addEventListener('mousedown', $e => {
+      $e.stopPropagation();
+    });*/
+    window.addEventListener('mouseup', $e => {
+      this.mousedown = false;
+      $e.stopPropagation();
+    });
   }
 
   addOption() {
     this.dragService.currentOption.subscribe(option => {
       this.option = option;
-      if(!(option in this.draggables) && option != '' || (option in this.draggables && option != "start-node" && option != "square end-node")) {
+      if(!(option in this.draggables) && option != '' || (option in this.draggables && option != "start-node" && option != "end-node square")) {
         this.draggables[option] = 1;
         let block = this.renderer.createElement('div');
         block.setAttribute("class", option);
         block.setAttribute("style", "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
         let block1 = this.renderer.createElement('div');
-        if(option == "square bomb-node")
+        if(option == "bomb-node square")
           block1.innerHTML = "!";
         if(option != "start-node")
           this.renderer.appendChild(block, block1);
@@ -48,20 +58,20 @@ export class GridComponent implements OnInit, AfterViewInit {
         let first = true, to_break = false;
         const rows = Array.from(this.grid.nativeElement.children);
 
-        for (let row of rows) {
+        for (let [i, row] of rows.entries()) {
           if(!first) {
             const rowArray = Array.from((<any>row).children);
-            for (let toAddInBlock of rowArray) {
-              const children = Array.from((<any>toAddInBlock).children);
-              if(children.length == 0) {
-
+            for (let [j, blockToAddIn] of rowArray.entries()) {
+              const children = Array.from((<any>blockToAddIn).children);
+              if(children.length == 0 && this.freq_table[i - 1][j] == 0) {
                 to_break = true;
                 let parent = this.renderer.createElement('div');
                 parent.setAttribute("draggable", "true");
                 parent.setAttribute("class", "draggable");
                 parent.addEventListener("dragstart", (e:Event) => this.onDragStart(e), true);
                 this.renderer.appendChild(parent, block);
-                this.renderer.appendChild(toAddInBlock, parent);
+                this.renderer.appendChild(blockToAddIn, parent);
+                this.updateFreq(block.className, undefined, i - 1, j);
                 break;
               }
             }
@@ -82,6 +92,7 @@ export class GridComponent implements OnInit, AfterViewInit {
     let blockSize;
 
     this.windowWidth = window.innerWidth;
+    this.freq_table = [];
 
     let firstBlock = this.renderer.createElement('div');
     firstBlock.setAttribute("class", "grid-block");
@@ -99,19 +110,27 @@ export class GridComponent implements OnInit, AfterViewInit {
       const row = this.renderer.createElement('div');
       row.setAttribute("class", "grid-row");
       this.renderer.appendChild(this.grid.nativeElement, row);
+      this.freq_table[i] = [];
 
       for(let j = 0; j < hLength; j++) {
+
+        this.freq_table[i][j] = 0;
 
         if(i == 0 && j == 0) {
           this.renderer.appendChild(row, firstBlock);
           firstBlock.addEventListener("dragover", (e:Event) => this.onDragOver(e), true);
           firstBlock.addEventListener("drop", (e:Event) => this.onDrop(e), true);
+          firstBlock.addEventListener("mouseover", (e:Event) => this.onMouseOver(e), true);
+          firstBlock.addEventListener("mousedown", (e:Event) => this.onMouseDown(e), true);
           continue;
         }
         const block = this.renderer.createElement('div');
         block.setAttribute("class", "grid-block");
+
         block.addEventListener("dragover", (e:Event) => this.onDragOver(e), true);
         block.addEventListener("drop", (e:Event) => this.onDrop(e), true);
+        block.addEventListener("mouseover", (e:Event) => this.onMouseOver(e), true);
+        block.addEventListener("mousedown", (e:Event) => this.onMouseDown(e), true);
 
         var att = document.createAttribute("style"); 
         let r = 0, b = 0;
@@ -147,6 +166,27 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.draggables = {};
   }
 
+  updateFreq(val:(string | number), el?:any, i?:number, j?:number) {
+    
+    if(el != undefined && (i == undefined || j == undefined)) {
+      i = Array.from(el.parentNode.parentNode.children).indexOf(el.parentNode) - 1;
+      j = Array.from(el.parentNode.children).indexOf(el);
+    }
+    if(typeof val === 'string') {
+      val = val.split(/[- ]/)[0];
+    }
+    this.freq_table[i][j] = val;
+    console.log(this.freq_table);
+  }
+
+  addWall(el) {
+    if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
+      //console.log(el);
+      el.style = "background: #333;";
+      this.updateFreq(1, el, undefined, undefined);
+    }
+  }
+
   alert() {
     if(window.confirm("Beware!") == true) {
       console.log("zoom");
@@ -168,33 +208,53 @@ export class GridComponent implements OnInit, AfterViewInit {
     if(event instanceof DragEvent) {
       event.stopPropagation();
       //event.preventDefault();
+      this.dragged = event.target;
+      this.mousedown = false;
     }
-    this.dragged = event.target;
   }
 
   onDragOver(event) {
     if(event instanceof DragEvent) {
       event.stopPropagation();
       event.preventDefault();
+      this.mousedown = false;
     }
   }
 
-  onDrop(test) {
+  onDrop(event) {
     if(event instanceof DragEvent) {
       event.stopPropagation();
       //event.preventDefault();
     }else
       return;
 
-    console.log(this.dragged.parentNode, event.target);
+    this.mousedown = false;
+    //console.log(this.dragged.parentNode, event.target);
 
     if(this.dragged.parentNode == event.target)
       return;
+
+    let i, j, k, l;
+    i = Array.from(this.dragged.parentNode.parentNode.parentNode.children).indexOf(this.dragged.parentNode.parentNode) - 1;
+    j = Array.from(this.dragged.parentNode.parentNode.children).indexOf(this.dragged.parentNode);
+
+    this.freq_table[i][j] = 0;
+    this.updateFreq(this.dragged.firstElementChild.className, event.target, undefined, undefined)
+
     this.dragged.parentNode.removeChild(this.dragged);
     (<any>event.target).appendChild(this.dragged);
   }
 
+  onMouseOver(event) {
+    if(this.mousedown == true) {
+      this.addWall(event.target);
+    }
+  }
 
+  onMouseDown(event) {
+    this.mousedown = true;
+    this.addWall(event.target);
+  }
 
   ////
 
