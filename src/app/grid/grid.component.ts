@@ -19,6 +19,7 @@ export class GridComponent implements OnInit, AfterViewInit {
   freq_table:(string | number)[][];
   node_type:string[] = ['start', 'end', 'bomb', 'weight', 'wall'];////!!!!!!!!!!???
   mousedown:boolean = false;
+  erase:number = 0;
 
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
@@ -38,6 +39,8 @@ export class GridComponent implements OnInit, AfterViewInit {
     window.addEventListener('mouseup', e => {
       e.stopPropagation();
       this.mousedown = false;
+      this.erase--;
+      console.log("sub");
     }, true);
   }
 
@@ -176,14 +179,19 @@ export class GridComponent implements OnInit, AfterViewInit {
       val = val.split(/[- ]/)[0];
     }
     this.freq_table[i][j] = val;
-    console.log(this.freq_table);
+    //console.log(this.freq_table);
   }
 
-  addWall(el) {
+  addOrRemoveWall(el) {
     if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
-      //console.log(el);
-      el.style = "background: #333;";
-      this.updateFreq(1, el, undefined, undefined);
+      if(this.erase < 2) {
+        //console.log(el);
+        el.style = "background: #333;";
+        this.updateFreq(1, el, undefined, undefined);
+      }else {
+        el.style = "background: none;";
+        this.updateFreq(0, el, undefined, undefined);
+      }
     }
   }
 
@@ -251,13 +259,17 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   onMouseOver(event) {
     if(this.mousedown == true) {
-      this.addWall(event.currentTarget);
+      this.addOrRemoveWall(event.currentTarget);
     }
   }
 
   onMouseDown(event) {
+    this.erase++;
+    if(event.which != "1")
+      return;
     this.mousedown = true;
-    this.addWall(event.currentTarget);
+    this.addOrRemoveWall(event.currentTarget);
+    console.log(this.erase);
   }
 
   ////
