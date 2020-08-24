@@ -32,13 +32,13 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.addOption();
-    /*window.addEventListener('mousedown', $e => {
-      $e.stopPropagation();
-    });*/
-    window.addEventListener('mouseup', $e => {
+    /*window.addEventListener('mousedown', e => {
+      e.stopPropagation();
+    }, true);*/
+    window.addEventListener('mouseup', e => {
+      e.stopPropagation();
       this.mousedown = false;
-      $e.stopPropagation();
-    });
+    }, true);
   }
 
   addOption() {
@@ -205,12 +205,12 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   onDragStart(event) {
-    if(event instanceof DragEvent) {
-      event.stopPropagation();
-      //event.preventDefault();
-      this.dragged = event.target;
-      this.mousedown = false;
-    }
+    if(!(event instanceof DragEvent))
+      return;
+    event.stopPropagation();
+    //event.preventDefault();
+    this.dragged = event.currentTarget;
+    this.mousedown = false;
   }
 
   onDragOver(event) {
@@ -229,9 +229,11 @@ export class GridComponent implements OnInit, AfterViewInit {
       return;
 
     this.mousedown = false;
-    //console.log(this.dragged.parentNode, event.target);
+    //console.log(this.dragged.parentNode, event.target, event.currentTarget);
 
-    if(this.dragged.parentNode == event.target)
+    if(this.dragged.parentNode.className != (<any>event.currentTarget).className)
+      return;
+    if(Array.from((<any>event.currentTarget).children).length > 0)
       return;
 
     let i, j, k, l;
@@ -239,21 +241,23 @@ export class GridComponent implements OnInit, AfterViewInit {
     j = Array.from(this.dragged.parentNode.parentNode.children).indexOf(this.dragged.parentNode);
 
     this.freq_table[i][j] = 0;
-    this.updateFreq(this.dragged.firstElementChild.className, event.target, undefined, undefined)
+    this.updateFreq(this.dragged.firstElementChild.className, event.currentTarget, undefined, undefined);
+
+    this.renderer.setStyle(event.currentTarget, 'background', 'none');
 
     this.dragged.parentNode.removeChild(this.dragged);
-    (<any>event.target).appendChild(this.dragged);
+    (<any>event.currentTarget).appendChild(this.dragged);
   }
 
   onMouseOver(event) {
     if(this.mousedown == true) {
-      this.addWall(event.target);
+      this.addWall(event.currentTarget);
     }
   }
 
   onMouseDown(event) {
     this.mousedown = true;
-    this.addWall(event.target);
+    this.addWall(event.currentTarget);
   }
 
   ////
