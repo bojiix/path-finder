@@ -19,7 +19,7 @@ export class GridComponent implements OnInit, AfterViewInit {
   freq_table:(string | number)[][];
   node_type:string[] = ['start', 'end', 'bomb', 'weight', 'wall'];////!!!!!!!!!!???
   mousedown:boolean = false;
-  erase:number = 0;
+  erase:boolean = false;
 
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
@@ -39,9 +39,19 @@ export class GridComponent implements OnInit, AfterViewInit {
     window.addEventListener('mouseup', e => {
       e.stopPropagation();
       this.mousedown = false;
-      this.erase--;
-      console.log("sub");
+      //this.erase--;
     }, true);
+    window.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      this.erase = !this.erase;
+      this.grid.nativeElement.style.cursor = "cell";
+      if(this.erase == true) {
+        this.grid.nativeElement.style.cursor = "pointer";
+        this.addOrRemoveWall(e.target);
+      }
+    }, true);
+    window.addEventListener("drop", (e:Event) => this.onDrop(e), false);
+    window.addEventListener("dragover", (e:Event) => this.onDragOver(e), false);
   }
 
   addOption() {
@@ -52,6 +62,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         let block = this.renderer.createElement('div');
         block.setAttribute("class", option);
         block.setAttribute("style", "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
+        block.style.cursor = "inherit";
         let block1 = this.renderer.createElement('div');
         if(option == "bomb-node square")
           block1.innerHTML = "!";
@@ -93,6 +104,8 @@ export class GridComponent implements OnInit, AfterViewInit {
   createGrid() {
     
     let blockSize;
+
+    this.grid.nativeElement.style.cursor = "cell";
 
     this.windowWidth = window.innerWidth;
     this.freq_table = [];
@@ -170,11 +183,17 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   updateFreq(val:(string | number), el?:any, i?:number, j?:number) {
-    
+
+    if(el == window) {
+      delete this.draggables[val];
+      return -1;
+    }
+
     if(el != undefined && (i == undefined || j == undefined)) {
       i = Array.from(el.parentNode.parentNode.children).indexOf(el.parentNode) - 1;
       j = Array.from(el.parentNode.children).indexOf(el);
     }
+    
     if(typeof val === 'string') {
       val = val.split(/[- ]/)[0];
     }
@@ -184,7 +203,7 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   addOrRemoveWall(el) {
     if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
-      if(this.erase < 2) {
+      if(this.erase == false) {
         //console.log(el);
         el.style = "background: #333;";
         this.updateFreq(1, el, undefined, undefined);
@@ -232,28 +251,34 @@ export class GridComponent implements OnInit, AfterViewInit {
   onDrop(event) {
     if(event instanceof DragEvent) {
       event.stopPropagation();
-      //event.preventDefault();
+      event.preventDefault();
     }else
       return;
 
     this.mousedown = false;
-    //console.log(this.dragged.parentNode, event.target, event.currentTarget);
 
-    if(this.dragged.parentNode.className != (<any>event.currentTarget).className)
-      return;
-    if(Array.from((<any>event.currentTarget).children).length > 0)
-      return;
+    if(event.currentTarget != window) {
+      if(this.dragged.parentNode.className != (<any>event.currentTarget).className)
+        return;
+      if(Array.from((<any>event.currentTarget).children).length > 0)
+        return;
+    }
+
+    //console.log(this.dragged.parentNode, event.target, event.currentTarget);
 
     let i, j, k, l;
     i = Array.from(this.dragged.parentNode.parentNode.parentNode.children).indexOf(this.dragged.parentNode.parentNode) - 1;
     j = Array.from(this.dragged.parentNode.parentNode.children).indexOf(this.dragged.parentNode);
 
     this.freq_table[i][j] = 0;
-    this.updateFreq(this.dragged.firstElementChild.className, event.currentTarget, undefined, undefined);
+
+    if(this.updateFreq(this.dragged.firstElementChild.className, event.currentTarget, undefined, undefined) == -1) {
+
+      this.dragged.parentNode.removeChild(this.dragged);
+      return;
+    }
 
     this.renderer.setStyle(event.currentTarget, 'background', 'none');
-
-    this.dragged.parentNode.removeChild(this.dragged);
     (<any>event.currentTarget).appendChild(this.dragged);
   }
 
@@ -264,12 +289,11 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   onMouseDown(event) {
-    this.erase++;
+    //this.erase++;
     if(event.which != "1")
       return;
     this.mousedown = true;
     this.addOrRemoveWall(event.currentTarget);
-    console.log(this.erase);
   }
 
   ////

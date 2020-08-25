@@ -26,7 +26,7 @@
 }
 
 .grid-block {
-    cursor: pointer;
+    //cursor: cell;
     position: relative;
     border: 1px solid rgb(13, 45, 59);
     border-width: 1px 0 0 1px;
@@ -45,6 +45,7 @@
 }
 
 .draggable {
+    cursor: move;
     position: absolute;
     top: 0;
     left: 0;
