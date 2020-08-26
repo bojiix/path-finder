@@ -13,9 +13,10 @@ export class ObjectsHeaderComponent implements OnInit {
   constructor(private dragService: DraggablesService) { }
 
   ngOnInit() {
-    this.dragService.currentOption.subscribe(option => {
-      this.option = option;
-    });
+    // this.dragService.currentOption.subscribe(option => {
+    //   this.option = option;
+    //   console.log(option);
+    // });
   }
 
   changeOption(option:string) {

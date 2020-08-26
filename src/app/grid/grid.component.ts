@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, Renderer2 } from '@angular/core';
 import { DraggablesService } from '../services/draggables.service';
+import { InterCommunicationService } from '../services/inter-communication.service';
 
 @Component({
   selector: 'app-grid',
@@ -23,7 +24,8 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
-              private dragService: DraggablesService) { }
+              private dragService: DraggablesService,
+              private interCommService: InterCommunicationService) { }
 
   ngAfterViewInit(){
     //Grid.grid = this.grid;
@@ -32,7 +34,23 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.registerSubscriptions();
     this.addOption();
+    this.setSeparateEvents();
+  }
+
+  registerSubscriptions() {
+    this.interCommService.dataObservable.subscribe(message => {
+      console.log(message);
+      if(message == 'clear-board') {
+        this.clearBoard();
+      }else if(message == 'clear-walls-weight') {
+        this.clearWallsAndWeight();
+      }
+    });
+  }
+
+  setSeparateEvents() {
     /*window.addEventListener('mousedown', e => {
       e.stopPropagation();
     }, true);*/
@@ -41,7 +59,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       this.mousedown = false;
       //this.erase--;
     }, true);
-    window.addEventListener('dblclick', e => {
+    /*window*/document.getElementById('grid-section').addEventListener('dblclick', e => {
       e.stopPropagation();
       this.erase = !this.erase;
       this.grid.nativeElement.style.cursor = "cell";
@@ -57,8 +75,9 @@ export class GridComponent implements OnInit, AfterViewInit {
   addOption() {
     this.dragService.currentOption.subscribe(option => {
       this.option = option;
-      if(!(option in this.draggables) && option != '' || (option in this.draggables && option != "start-node" && option != "end-node square")) {
-        this.draggables[option] = 1;
+      if((!(option in this.draggables) && option != '') || (option in this.draggables && option != "start-node" && option != "end-node square")) {
+        this.draggables[option] = option in this.draggables ? this.draggables[option] + 1 : 1;
+        console.log(this.draggables);
         let block = this.renderer.createElement('div');
         block.setAttribute("class", option);
         block.setAttribute("style", "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
@@ -69,11 +88,11 @@ export class GridComponent implements OnInit, AfterViewInit {
         if(option != "start-node")
           this.renderer.appendChild(block, block1);
 
-        let first = true, to_break = false;
+        let to_break = false;
         const rows = Array.from(this.grid.nativeElement.children);
 
         for (let [i, row] of rows.entries()) {
-          if(!first) {
+          if(i > 0) {
             const rowArray = Array.from((<any>row).children);
             for (let [j, blockToAddIn] of rowArray.entries()) {
               const children = Array.from((<any>blockToAddIn).children);
@@ -89,8 +108,6 @@ export class GridComponent implements OnInit, AfterViewInit {
                 break;
               }
             }
-          }else {
-            first = false;
           }
           if(to_break == true)
             break;
@@ -99,6 +116,51 @@ export class GridComponent implements OnInit, AfterViewInit {
 
       }
     });
+  }
+
+  clearBoard() {
+    this.erase = true;
+    const rows = Array.from(this.grid.nativeElement.children);
+    for (let [i, row] of rows.entries()) {
+      if(i > 0) {
+        const rowArray = Array.from((<any>row).children);
+        for (let [j, block] of rowArray.entries()) {
+          if(this.addOrRemoveWall(block) == false) {
+            this.updateFreq(0, undefined, i - 1, j);
+            Array.from((<any>block).children).forEach(child => {
+              this.renderer.removeChild(block, child);
+            });
+          }
+        }
+      }
+    }
+    this.draggables = {};
+    console.log("erased");
+    this.erase = false;
+  }
+
+  clearWallsAndWeight() {
+    this.erase = true;
+    const rows = Array.from(this.grid.nativeElement.children);
+    for (let [i, row] of rows.entries()) {
+      if(i > 0) {
+        const rowArray = Array.from((<any>row).children);
+        for (let [j, block] of rowArray.entries()) {
+          if(this.addOrRemoveWall(block) == false) {
+            if(this.freq_table[i - 1][j] == 'weight') {
+              this.updateFreq(0, undefined, i - 1, j);
+              Array.from((<any>block).children).forEach(child => {
+                this.renderer.removeChild(block, child);
+                //this.draggables['weight-node square']--;
+                //console.log(this.draggables);
+              });
+            }
+          }
+        }
+      }
+    }
+    delete this.draggables['weight-node square'];
+    this.erase = false;
   }
 
   createGrid() {
@@ -119,7 +181,7 @@ export class GridComponent implements OnInit, AfterViewInit {
 
     const nWidth = parseFloat(window.getComputedStyle(this.grid.nativeElement).width);
     const hLength = Math.floor(nWidth / blockSize) - 1;
-    const vLength = 20;
+    const vLength = 30;
 
     for(let i = 0; i < vLength; i++) {
 
@@ -204,14 +266,16 @@ export class GridComponent implements OnInit, AfterViewInit {
   addOrRemoveWall(el) {
     if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
       if(this.erase == false) {
-        //console.log(el);
-        el.style = "background: #333;";
+        console.log(el.style);
+        el.style.background = "#333";
         this.updateFreq(1, el, undefined, undefined);
       }else {
-        el.style = "background: none;";
+        el.style.background = "none";
         this.updateFreq(0, el, undefined, undefined);
       }
+      return true;
     }
+    return false;
   }
 
   alert() {
