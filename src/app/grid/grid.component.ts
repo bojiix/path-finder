@@ -10,6 +10,7 @@ import { InterCommunicationService } from '../services/inter-communication.servi
     '../objects-header/objects-header.component.scss'
   ]
 })
+
 export class GridComponent implements OnInit, AfterViewInit {
 
   @ViewChild('grid') grid: ElementRef;
@@ -21,6 +22,14 @@ export class GridComponent implements OnInit, AfterViewInit {
   node_type:string[] = ['start', 'end', 'bomb', 'weight', 'wall'];////!!!!!!!!!!???
   mousedown:boolean = false;
   erase:boolean = false;
+  chosenAlgorithm = '';
+  algorithms = ["Dijkstra's Algorithm", "A* Search", "Greedy Best-first Search", "Test"];
+  path:Array<DragPoint> = [];
+  startPoint:DragPoint;
+  endPoint:DragPoint;
+  dirY:number[] = [-1, -1, 0, 1, 1,  1,  0, -1];
+  dirX:number[] = [ 0,  1, 1, 1, 0, -1, -1, -1];
+  horizontalGridSize:number;
 
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
@@ -35,19 +44,32 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.registerSubscriptions();
-    this.addOption();
     this.setSeparateEvents();
   }
 
   registerSubscriptions() {
     this.interCommService.dataObservable.subscribe(message => {
-      console.log(message);
+      //console.log(message);
       if(message == 'clear-board') {
         this.clearBoard();
       }else if(message == 'clear-walls-weight') {
         this.clearWallsAndWeight();
+      }else if(message == 'clear-path') {
+        this.clearPath();
+      }else if(this.algorithms.indexOf(message) > -1) {
+        this.chosenAlgorithm = message;
+      }else if(message == "remove-algo") {
+        this.chosenAlgorithm = '';
+      }else if(message == 'visualize') {
+        this.visualize();
+      }else if(typeof message === 'string') {
+        const x = message.split(/[-]/);
+        if(x[0] == 'speed') {
+          //console.log(x[1]);
+        }
       }
     });
+    this.addOption();
   }
 
   setSeparateEvents() {
@@ -77,7 +99,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       this.option = option;
       if((!(option in this.draggables) && option != '') || (option in this.draggables && option != "start-node" && option != "end-node square")) {
         this.draggables[option] = option in this.draggables ? this.draggables[option] + 1 : 1;
-        console.log(this.draggables);
+        //console.log(this.draggables);
         let block = this.renderer.createElement('div');
         block.setAttribute("class", option);
         block.setAttribute("style", "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);");
@@ -135,7 +157,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       }
     }
     this.draggables = {};
-    console.log("erased");
+    //console.log("erased");
     this.erase = false;
   }
 
@@ -163,6 +185,11 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.erase = false;
   }
 
+  clearPath() {
+
+    this.path = [];
+  }
+
   createGrid() {
     
     let blockSize;
@@ -182,6 +209,8 @@ export class GridComponent implements OnInit, AfterViewInit {
     const nWidth = parseFloat(window.getComputedStyle(this.grid.nativeElement).width);
     const hLength = Math.floor(nWidth / blockSize) - 1;
     const vLength = 30;
+
+    this.horizontalGridSize = hLength;
 
     for(let i = 0; i < vLength; i++) {
 
@@ -260,13 +289,25 @@ export class GridComponent implements OnInit, AfterViewInit {
       val = val.split(/[- ]/)[0];
     }
     this.freq_table[i][j] = val;
+    //console.log(i, j);
+    if(val == 'start') {
+      this.startPoint = {
+        verticalPos: i,
+        horizontalPos: j
+      };
+    }else if(val == 'end') {
+      this.endPoint = {
+        verticalPos: i,
+        horizontalPos: j
+      };
+    }
     //console.log(this.freq_table);
   }
 
   addOrRemoveWall(el) {
     if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
       if(this.erase == false) {
-        console.log(el.style);
+        //console.log(el.style);
         el.style.background = "#333";
         this.updateFreq(1, el, undefined, undefined);
       }else {
@@ -360,7 +401,58 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.addOrRemoveWall(event.currentTarget);
   }
 
-  ////
+  //////////////// Visualize
+
+  visualize() {
+    if(this.chosenAlgorithm == "Dijkstra's Algorithm") {
+      this.dijkstra();
+    }else if(this.chosenAlgorithm == "A* Search") {
+      this.astar();
+    }else if(this.chosenAlgorithm == "Greedy Best-first Search") {
+      this.greedybfs();
+    }else if(this.chosenAlgorithm == "Test") {
+      this.path.push(this.startPoint);
+      this.test(0);
+    }
+  }
+
+  dijkstra() {
+    
+  }
+
+  astar() {
+
+  }
+
+  greedybfs() {
+
+  }
+
+  async test(lvl) {
+    for(let x = 0; x < 8; x++) {
+      let i, j;
+      i = this.path[lvl].verticalPos + this.dirY[x];
+      j = this.path[lvl].horizontalPos + this.dirX[x];
+      let newPoint = {} as DragPoint;
+      newPoint.verticalPos = i;
+      newPoint.horizontalPos = j;
+      await this.delay(0);
+      if(i < 0 || i >= 30 || j < 0 || j >= this.horizontalGridSize || this.path.find(obj => obj.verticalPos == i && obj.horizontalPos == j)) {
+        //console.log("fsfs", i, j, this.path.find(obj => obj.verticalPos == i && obj.horizontalPos == j));
+        continue;
+      }
+      this.path.push(newPoint);
+      this.addOrRemoveWall(this.grid.nativeElement.children[i + 1].children[j]);
+    }
+    //await this.delay(75);
+    this.test(lvl + 1);
+  }
+
+  /////////////
+
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   runWorker() {
 
@@ -374,4 +466,9 @@ export class GridComponent implements OnInit, AfterViewInit {
     } else {
     }
   }
+}
+
+interface DragPoint {
+  verticalPos:number;
+  horizontalPos:number;
 }

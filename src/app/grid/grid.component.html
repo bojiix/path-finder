@@ -1,4 +1,7 @@
 <div id="grid-section">
+    <div [ngClass]="{'algo-name': chosenAlgorithm != ''}">
+        <h3>{{chosenAlgorithm}}</h3>
+    </div>
     <div class="container">
         <div #grid id="grid" (window:resize)="onResize($event)" style="position: relative;">
             <div id="draggables"></div>

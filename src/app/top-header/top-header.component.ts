@@ -8,8 +8,10 @@ import { InterCommunicationService } from '../services/inter-communication.servi
 })
 export class TopHeaderComponent implements OnInit {
 
-  algorithms = ["Dijkstra's Algorithm", "A* Search", "Greedy Best-first Search"];
+  algorithms = ["Dijkstra's Algorithm", "A* Search", "Greedy Best-first Search", "Test"];
   speed = ['Fast', 'Medium', 'Slow'];
+  isAlgoSelected:boolean = false;
+  selectedAlgo = '';
   selectedSpeed;
 
   constructor(private interCommService: InterCommunicationService) { }
@@ -17,8 +19,25 @@ export class TopHeaderComponent implements OnInit {
   ngOnInit() {
   }
 
-  visualize() {
+  setAlgo(algo) {
+    if(algo == this.selectedAlgo) {
+      this.isAlgoSelected = false;
+      this.selectedAlgo = '';
+      this.interCommService.setMessage('remove-algo');
+      //alert('Algorithm removed!');
+      return;
+    }
+    this.isAlgoSelected = true;
+    this.selectedAlgo = algo;
+    this.interCommService.setMessage(algo);
+  }
 
+  visualize() {
+    if(this.isAlgoSelected == false) {
+      alert('Please choose an algorithm!');
+      return;
+    }
+    this.interCommService.setMessage('visualize');
   }
 
   clearBoard() {
@@ -29,9 +48,13 @@ export class TopHeaderComponent implements OnInit {
     this.interCommService.setMessage('clear-walls-weight');
   }
 
-  setSpeed(speed) {
+  clearPath() {
+    this.interCommService.setMessage('clear-path');
+  }
 
+  setSpeed(speed) {
     this.selectedSpeed = speed;
+    this.interCommService.setMessage('speed-' + speed);
   }
 
 }

@@ -8,7 +8,7 @@
                 <div class="hover">
                     <div class="list">Algorithms<div class="arrow down"></div></div>
                     <ul class="dropdown">
-                        <li *ngFor="let item of algorithms; let i = index" value="{{i}}">{{item}}</li>
+                        <li *ngFor="let item of algorithms; let i = index" value="{{i}}" (click)="setAlgo(item)">{{item}}</li>
                     </ul>
                 </div>
                 <div class="hover">
@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div id="vis-btn" (click)="visualize()">
-                <div>
+                <div [ngClass]="{'disabled': !isAlgoSelected}">
                     Visualize!
                 </div>
             </div>
@@ -30,7 +30,7 @@
                 <div (click)="clearWallsAndWeight()">
                     Clear Walls & Weight
                 </div>
-                <div>
+                <div (click)="clearPath()">
                     Clear Path
                 </div>
                 <div class="hover">
