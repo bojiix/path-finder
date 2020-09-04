@@ -23,13 +23,16 @@ export class GridComponent implements OnInit, AfterViewInit {
   mousedown:boolean = false;
   erase:boolean = false;
   chosenAlgorithm = '';
-  algorithms = ["Dijkstra's Algorithm", "A* Search", "Greedy Best-first Search", "Test"];
+  algorithms = ["Dijkstra's Algorithm", "A* Search", "Greedy Best-first Search", "Back-tracking", "Test"];
   path:Array<DragPoint> = [];
   startPoint:DragPoint;
   endPoint:DragPoint;
   dirY:number[] = [-1, -1, 0, 1, 1,  1,  0, -1];
   dirX:number[] = [ 0,  1, 1, 1, 0, -1, -1, -1];
   horizontalGridSize:number;
+  stopAlgo:boolean = false;
+  currentLevelInPath:number = 0;
+  speed:number = 0;
 
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
@@ -60,12 +63,16 @@ export class GridComponent implements OnInit, AfterViewInit {
         this.chosenAlgorithm = message;
       }else if(message == "remove-algo") {
         this.chosenAlgorithm = '';
-      }else if(message == 'visualize') {
+      }else if(message == 'start-visualizing') {
+        this.stopAlgo = false;
         this.visualize();
+      }else if(message == 'stop-visualizing') {
+        this.stopAlgo = true;
+        //this.visualize();
       }else if(typeof message === 'string') {
         const x = message.split(/[-]/);
         if(x[0] == 'speed') {
-          //console.log(x[1]);
+          this.speed = parseInt(x[1]);
         }
       }
     });
@@ -148,6 +155,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         const rowArray = Array.from((<any>row).children);
         for (let [j, block] of rowArray.entries()) {
           if(this.addOrRemoveWall(block) == false) {
+            (<any>block).style.background = 'none';
             this.updateFreq(0, undefined, i - 1, j);
             Array.from((<any>block).children).forEach(child => {
               this.renderer.removeChild(block, child);
@@ -159,6 +167,8 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.draggables = {};
     //console.log("erased");
     this.erase = false;
+    this.currentLevelInPath = 0;
+    this.path = [];
   }
 
   clearWallsAndWeight() {
@@ -168,7 +178,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       if(i > 0) {
         const rowArray = Array.from((<any>row).children);
         for (let [j, block] of rowArray.entries()) {
-          if(this.addOrRemoveWall(block) == false) {
+          if(this.addOrRemoveWall(block, this.freq_table[i - 1][j]) == false) {
             if(this.freq_table[i - 1][j] == 'weight') {
               this.updateFreq(0, undefined, i - 1, j);
               Array.from((<any>block).children).forEach(child => {
@@ -186,7 +196,17 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   clearPath() {
-
+    console.log('fff');
+    for(let x = 0; x < this.path.length; x++) {
+      let i, j;
+      i = this.path[x].verticalPos;
+      j = this.path[x].horizontalPos;
+      if(this.freq_table[i][j] == 1) {
+        this.updateFreq(0, undefined, i, j);
+        this.grid.nativeElement.children[i + 1].children[j].style.background = 'none';
+      }
+    }
+    this.currentLevelInPath = 0;
     this.path = [];
   }
 
@@ -271,6 +291,8 @@ export class GridComponent implements OnInit, AfterViewInit {
       }
     });
     this.draggables = {};
+    this.path = [];
+    this.freq_table = [];
   }
 
   updateFreq(val:(string | number), el?:any, i?:number, j?:number) {
@@ -304,15 +326,21 @@ export class GridComponent implements OnInit, AfterViewInit {
     //console.log(this.freq_table);
   }
 
-  addOrRemoveWall(el) {
-    if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
+  addOrRemoveWall(el, freq:(string | number) = -1) {
+    let i, j;
+    if(freq == -1) {
+      i = Array.from(el.parentNode.parentNode.children).indexOf(el.parentNode) - 1;
+      j = Array.from(el.parentNode.children).indexOf(el);
+      freq = this.freq_table[i][j];
+    }
+    if(el.className == 'grid-block' && Array.from(el.children).length == 0 && freq != 1) {
       if(this.erase == false) {
         //console.log(el.style);
-        el.style.background = "#333";
-        this.updateFreq(1, el, undefined, undefined);
+        el.style.background = "#552121";
+        this.updateFreq(2, el, undefined, undefined);
       }else {
         el.style.background = "none";
-        this.updateFreq(0, el, undefined, undefined);
+          this.updateFreq(0, el, undefined, undefined); //this will erase the drawn path too
       }
       return true;
     }
@@ -371,7 +399,7 @@ export class GridComponent implements OnInit, AfterViewInit {
 
     //console.log(this.dragged.parentNode, event.target, event.currentTarget);
 
-    let i, j, k, l;
+    let i, j;
     i = Array.from(this.dragged.parentNode.parentNode.parentNode.children).indexOf(this.dragged.parentNode.parentNode) - 1;
     j = Array.from(this.dragged.parentNode.parentNode.children).indexOf(this.dragged.parentNode);
 
@@ -404,15 +432,26 @@ export class GridComponent implements OnInit, AfterViewInit {
   //////////////// Visualize
 
   visualize() {
+    //console.log(this.path);
+    if(this.path.length == 0) {
+      this.path.push(this.startPoint);
+    } 
     if(this.chosenAlgorithm == "Dijkstra's Algorithm") {
       this.dijkstra();
     }else if(this.chosenAlgorithm == "A* Search") {
       this.astar();
     }else if(this.chosenAlgorithm == "Greedy Best-first Search") {
       this.greedybfs();
+    }else if(this.chosenAlgorithm == "Back-tracking") {
+      this.backtracking(0);
     }else if(this.chosenAlgorithm == "Test") {
-      this.path.push(this.startPoint);
-      this.test(0);
+      const result = (value) => {
+        console.log(value);
+        if(value == true) {
+          this.interCommService.setMessage('reset-button');
+        }
+      };
+      this.test(this.currentLevelInPath).then(value => result(value));
     }
   }
 
@@ -428,24 +467,43 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   }
 
+  backtracking(lvl) {
+
+  }
+
   async test(lvl) {
+    if(this.stopAlgo == true)
+      return false;
+    this.currentLevelInPath = lvl;
     for(let x = 0; x < 8; x++) {
       let i, j;
+      if(this.path[lvl] == undefined)
+        return true;
       i = this.path[lvl].verticalPos + this.dirY[x];
       j = this.path[lvl].horizontalPos + this.dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
-      await this.delay(0);
-      if(i < 0 || i >= 30 || j < 0 || j >= this.horizontalGridSize || this.path.find(obj => obj.verticalPos == i && obj.horizontalPos == j)) {
+      if(i < 0 || i >= 30 || j < 0 || j >= this.horizontalGridSize || this.path.find(obj => obj.verticalPos == i && obj.horizontalPos == j) || this.freq_table[i][j] != 0) {
         //console.log("fsfs", i, j, this.path.find(obj => obj.verticalPos == i && obj.horizontalPos == j));
         continue;
       }
+      await this.delay(this.speed);
+      //console.log(newPoint);
       this.path.push(newPoint);
-      this.addOrRemoveWall(this.grid.nativeElement.children[i + 1].children[j]);
+      this.addPath(this.grid.nativeElement.children[i + 1].children[j]);
     }
-    //await this.delay(75);
-    this.test(lvl + 1);
+    //await this.delay(500);
+    return this.test(lvl + 1);
+  }
+
+  addPath(el) {
+    if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
+      el.style.background = "#2bb9c3";
+      this.updateFreq(1, el, undefined, undefined);
+      return true;
+    }
+    return false;
   }
 
   /////////////

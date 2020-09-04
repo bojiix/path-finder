@@ -11,6 +11,7 @@
     position: relative;
     width: 90%;
     margin: 0 auto;
+    text-align: center;
     //padding: 15px 0;
 }
 
@@ -55,6 +56,12 @@
             background-color: rgb(52, 136, 103);
             &:active {
                 background-color: rgb(31, 70, 55);
+            }
+        }
+        .pause {
+            background-color: rgb(175, 33, 33);
+            &:active {
+                background-color: rgb(83, 22, 22);
             }
         }
     }
