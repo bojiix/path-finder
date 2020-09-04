@@ -24,14 +24,18 @@ export class GridComponent implements OnInit, AfterViewInit {
   erase:boolean = false;
   chosenAlgorithm = '';
   algorithms = ["Dijkstra's Algorithm", "A* Search", "Greedy Best-first Search", "Back-tracking", "Test"];
-  path:Array<DragPoint> = [];
+  paths:Array<DragPoint> = [];
+  shortestPath:Array<DragPoint> = [];
   startPoint:DragPoint;
   endPoint:DragPoint;
-  dirY:number[] = [-1, -1, 0, 1, 1,  1,  0, -1];
-  dirX:number[] = [ 0,  1, 1, 1, 0, -1, -1, -1];
+  dirY:number[] = [-1, 0, 1,  0];
+  dirX:number[] = [ 0, 1, 0, -1];
+  dirYcomplex:number[] = [-1, -1, 0, 1, 1,  1,  0, -1];
+  dirXcomplex:number[] = [ 0,  1, 1, 1, 0, -1, -1, -1];
   horizontalGridSize:number;
+  verticalGridSize:number = 30;
   stopAlgo:boolean = false;
-  currentLevelInPath:number = 0;
+  currentLevelInPaths:number = 0;
   speed:number = 0;
 
   constructor(private renderer: Renderer2, 
@@ -57,8 +61,8 @@ export class GridComponent implements OnInit, AfterViewInit {
         this.clearBoard();
       }else if(message == 'clear-walls-weight') {
         this.clearWallsAndWeight();
-      }else if(message == 'clear-path') {
-        this.clearPath();
+      }else if(message == 'clear-paths') {
+        this.clearPaths();
       }else if(this.algorithms.indexOf(message) > -1) {
         this.chosenAlgorithm = message;
       }else if(message == "remove-algo") {
@@ -167,8 +171,8 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.draggables = {};
     //console.log("erased");
     this.erase = false;
-    this.currentLevelInPath = 0;
-    this.path = [];
+    this.currentLevelInPaths = 0;
+    this.paths = [];
   }
 
   clearWallsAndWeight() {
@@ -195,19 +199,18 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.erase = false;
   }
 
-  clearPath() {
-    console.log('fff');
-    for(let x = 0; x < this.path.length; x++) {
+  clearPaths() {
+    for(let x = 0; x < this.paths.length; x++) {
       let i, j;
-      i = this.path[x].verticalPos;
-      j = this.path[x].horizontalPos;
-      if(this.freq_table[i][j] == 1) {
+      i = this.paths[x].verticalPos;
+      j = this.paths[x].horizontalPos;
+      if(this.freq_table[i][j] == 1 || this.freq_table[i][j] == 2) {
         this.updateFreq(0, undefined, i, j);
         this.grid.nativeElement.children[i + 1].children[j].style.background = 'none';
       }
     }
-    this.currentLevelInPath = 0;
-    this.path = [];
+    this.currentLevelInPaths = 0;
+    this.paths = [];
   }
 
   createGrid() {
@@ -228,7 +231,7 @@ export class GridComponent implements OnInit, AfterViewInit {
 
     const nWidth = parseFloat(window.getComputedStyle(this.grid.nativeElement).width);
     const hLength = Math.floor(nWidth / blockSize) - 1;
-    const vLength = 30;
+    const vLength = this.verticalGridSize;
 
     this.horizontalGridSize = hLength;
 
@@ -291,7 +294,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       }
     });
     this.draggables = {};
-    this.path = [];
+    this.paths = [];
     this.freq_table = [];
   }
 
@@ -337,10 +340,10 @@ export class GridComponent implements OnInit, AfterViewInit {
       if(this.erase == false) {
         //console.log(el.style);
         el.style.background = "#552121";
-        this.updateFreq(2, el, undefined, undefined);
+        this.updateFreq(3, el, undefined, undefined);
       }else {
         el.style.background = "none";
-          this.updateFreq(0, el, undefined, undefined); //this will erase the drawn path too
+          this.updateFreq(0, el, undefined, undefined); //this will erase the drawn paths too
       }
       return true;
     }
@@ -432,9 +435,9 @@ export class GridComponent implements OnInit, AfterViewInit {
   //////////////// Visualize
 
   visualize() {
-    //console.log(this.path);
-    if(this.path.length == 0) {
-      this.path.push(this.startPoint);
+    //console.log(this.paths);
+    if(this.paths.length == 0) {
+      this.paths.push(this.startPoint);
     } 
     if(this.chosenAlgorithm == "Dijkstra's Algorithm") {
       this.dijkstra();
@@ -448,10 +451,13 @@ export class GridComponent implements OnInit, AfterViewInit {
       const result = (value) => {
         console.log(value);
         if(value == true) {
-          this.interCommService.setMessage('reset-button');
+          this.shortestPath.push(this.startPoint);
+          this.mini = this.horizontalGridSize * this.verticalGridSize + 1;
+          console.log(this.paths);
+          this.test1(0).then(() => this.interCommService.setMessage('reset-button'));
         }
       };
-      this.test(this.currentLevelInPath).then(value => result(value));
+      this.test(this.currentLevelInPaths).then(value => result(value));
     }
   }
 
@@ -471,36 +477,86 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   }
 
-  async test(lvl) {
-    if(this.stopAlgo == true)
-      return false;
-    this.currentLevelInPath = lvl;
-    for(let x = 0; x < 8; x++) {
+  mini;
+
+  async test1(lvl) {
+    
+    for(let x = 0; x < 4; x++) {
       let i, j;
-      if(this.path[lvl] == undefined)
+      if(this.paths[lvl] == undefined)
         return true;
-      i = this.path[lvl].verticalPos + this.dirY[x];
-      j = this.path[lvl].horizontalPos + this.dirX[x];
+      i = this.shortestPath[lvl].verticalPos + this.dirY[x];
+      j = this.shortestPath[lvl].horizontalPos + this.dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
-      if(i < 0 || i >= 30 || j < 0 || j >= this.horizontalGridSize || this.path.find(obj => obj.verticalPos == i && obj.horizontalPos == j) || this.freq_table[i][j] != 0) {
-        //console.log("fsfs", i, j, this.path.find(obj => obj.verticalPos == i && obj.horizontalPos == j));
+      if(!this.paths.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint)) || this.shortestPath.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint))) {
+        console.log('rejected', newPoint, 'for', this.shortestPath[lvl]);
         continue;
       }
+      console.log('accepted', newPoint, 'for', this.shortestPath[lvl]);
       await this.delay(this.speed);
       //console.log(newPoint);
-      this.path.push(newPoint);
-      this.addPath(this.grid.nativeElement.children[i + 1].children[j]);
+      this.shortestPath.push(newPoint);
+      if(JSON.stringify(newPoint) === JSON.stringify(this.endPoint)) {
+        if(this.mini > this.shortestPath.length) {
+          this.mini = this.shortestPath.length;
+          this.updateShortestPath();
+        }
+      }else {
+        this.test1(lvl + 1);
+      }
+      this.shortestPath.pop();
+      this.updateShortestPath(this.grid.nativeElement.children[i + 1].children[j]);
+    }
+  }
+
+  updateShortestPath(el?) {
+    if(el == undefined) {
+      this.addPaths(el);
+    }else {
+      for(let x = 1; x < this.shortestPath.length - 1; x++) {
+        let i, j;
+        i = this.shortestPath[x].verticalPos;
+        j = this.shortestPath[x].horizontalPos;
+        this.grid.nativeElement.children[i + 1].children[j].style.background = "#f1ce31";
+        this.updateFreq(1, undefined, i, j);
+        
+      }
+    }
+  }
+
+  async test(lvl) {
+    if(this.stopAlgo == true)
+      return false;
+    this.currentLevelInPaths = lvl;
+    for(let x = 0; x < 4; x++) {
+      let i, j;
+      if(this.paths[lvl] == undefined)
+        return true;
+      i = this.paths[lvl].verticalPos + this.dirY[x];
+      j = this.paths[lvl].horizontalPos + this.dirX[x];
+      let newPoint = {} as DragPoint;
+      newPoint.verticalPos = i;
+      newPoint.horizontalPos = j;
+      if(i < 0 || i >= 30 || j < 0 || j >= this.horizontalGridSize || this.paths.find(obj => obj.verticalPos == i && obj.horizontalPos == j) || (this.freq_table[i][j] != 0 && this.freq_table[i][j] != 'end')) {
+        continue;
+      }
+      this.paths.push(newPoint);
+      if(JSON.stringify(this.paths[this.paths.length - 1]) === JSON.stringify(this.endPoint))
+        return true;
+      this.addPaths(this.grid.nativeElement.children[i + 1].children[j]);
+      //console.log(this.endPoint == this.paths[this.paths.length - 1]);
+      await this.delay(this.speed);
     }
     //await this.delay(500);
     return this.test(lvl + 1);
   }
 
-  addPath(el) {
+  addPaths(el) {
     if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
       el.style.background = "#2bb9c3";
-      this.updateFreq(1, el, undefined, undefined);
+      this.updateFreq(2, el, undefined, undefined);
       return true;
     }
     return false;
