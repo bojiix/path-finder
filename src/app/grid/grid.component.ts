@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, Renderer2 } from '@angular/core';
 import { DraggablesService } from '../services/draggables.service';
 import { InterCommunicationService } from '../services/inter-communication.service';
+import { Colors as ColorPreset} from '../presets/colors';
 
 @Component({
   selector: 'app-grid',
@@ -41,7 +42,8 @@ export class GridComponent implements OnInit, AfterViewInit {
   constructor(private renderer: Renderer2, 
               private elementRef: ElementRef,
               private dragService: DraggablesService,
-              private interCommService: InterCommunicationService) { }
+              private interCommService: InterCommunicationService,
+              private colorPreset: ColorPreset) { }
 
   ngAfterViewInit(){
     //Grid.grid = this.grid;
@@ -336,7 +338,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       j = Array.from(el.parentNode.children).indexOf(el);
       freq = this.freq_table[i][j];
     }
-    if(el.className == 'grid-block' && Array.from(el.children).length == 0 && freq != 1) {
+    if(el.className == 'grid-block' && Array.from(el.children).length == 0 && freq != 1 && freq != 2) {
       if(this.erase == false) {
         //console.log(el.style);
         el.style.background = "#552121";
@@ -435,9 +437,9 @@ export class GridComponent implements OnInit, AfterViewInit {
   //////////////// Visualize
 
   visualize() {
-    //console.log(this.paths);
     if(this.paths.length == 0) {
       this.paths.push(this.startPoint);
+      this.currentLevelInPaths = 1;
     } 
     if(this.chosenAlgorithm == "Dijkstra's Algorithm") {
       this.dijkstra();
@@ -453,8 +455,9 @@ export class GridComponent implements OnInit, AfterViewInit {
         if(value == true) {
           this.shortestPath.push(this.startPoint);
           this.mini = this.horizontalGridSize * this.verticalGridSize + 1;
-          console.log(this.paths);
-          this.test1(0).then(() => this.interCommService.setMessage('reset-button'));
+          this.colorOffset = 256 / this.paths.length;
+          //console.log(this.paths);
+          this.test1(1, Math.random() * 3);//.then(() => this.interCommService.setMessage('reset-button'));
         }
       };
       this.test(this.currentLevelInPaths).then(value => result(value));
@@ -478,53 +481,62 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   mini;
+  colorOffset;
 
-  async test1(lvl) {
-    
+  updateShortestPath(colorIndex = 0, i = undefined, j = undefined, el = undefined) {
+    if(el != undefined) {
+      this.addPaths(el);
+    }else {
+      let color = this.colorPreset.defaultColor.shortestPathNodeDefault + this.colorOffset;
+      if(i != undefined && j != undefined) {
+        this.grid.nativeElement.children[i].children[j].style.background = color;
+        this.updateFreq(1, undefined, i - 1, j);
+        return;
+      }
+      for(let x = 1; x < this.shortestPath.length - 1; x++) {
+        //let i, j;
+        //console.log(this.shortestPath[x]);
+        i = this.shortestPath[x].verticalPos;
+        j = this.shortestPath[x].horizontalPos;
+        this.grid.nativeElement.children[i + 1].children[j].style.background = color;
+        this.updateFreq(1, undefined, i, j);
+      }
+    }
+  }
+
+  test1(lvl, colorIndex) {
+    console.log('end? ', JSON.stringify(this.shortestPath[lvl - 1]) === JSON.stringify(this.endPoint));
+    if(JSON.stringify(this.shortestPath[lvl - 1]) === JSON.stringify(this.endPoint)) {
+      if(this.mini > this.shortestPath.length) {
+        this.mini = this.shortestPath.length;
+        this.updateShortestPath(colorIndex);
+      }
+      return false;
+    }
+    let is = true;
     for(let x = 0; x < 4; x++) {
       let i, j;
-      if(this.shortestPath[lvl] == undefined)
-        return true;
-      i = this.shortestPath[lvl].verticalPos + this.dirY[x];
-      j = this.shortestPath[lvl].horizontalPos + this.dirX[x];
+      i = this.shortestPath[lvl - 1].verticalPos + this.dirY[x];
+      j = this.shortestPath[lvl - 1].horizontalPos + this.dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
       console.log('lvl ', lvl);
       if(!this.paths.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint)) || this.shortestPath.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint))) {
-        console.log('rejected', newPoint, 'for', this.shortestPath[lvl]);
+        console.log('rejected', newPoint, 'for', this.shortestPath[lvl - 1]);
         continue;
       }
-      console.log('accepted', newPoint, 'for', this.shortestPath[lvl]);
-      await this.delay(this.speed);
+      console.log('accepted', newPoint, 'for', this.shortestPath[lvl - 1], this.shortestPath);
+      //await this.delay(this.speed);
       //console.log(newPoint);
       this.shortestPath.push(newPoint);
-      console.log('end? ', JSON.stringify(newPoint) === JSON.stringify(this.endPoint));
-      if(JSON.stringify(newPoint) === JSON.stringify(this.endPoint)) {
-        if(this.mini > this.shortestPath.length) {
-          this.mini = this.shortestPath.length;
-          this.updateShortestPath();
-        }
-      }else {
-        this.test1(lvl + 1);
-      }
+      this.updateShortestPath(colorIndex, i + 1, j);
+      is = this.test1(lvl + 1, colorIndex);
+      if(is == false)
+        return false;
+      console.log('adawd, popped', newPoint, is);
       this.shortestPath.pop();
-      this.updateShortestPath(this.grid.nativeElement.children[i + 1].children[j]);
-    }
-  }
-
-  updateShortestPath(el?) {
-    if(el == undefined) {
-      this.addPaths(el);
-    }else {
-      for(let x = 1; x < this.shortestPath.length - 1; x++) {
-        let i, j;
-        i = this.shortestPath[x].verticalPos;
-        j = this.shortestPath[x].horizontalPos;
-        this.grid.nativeElement.children[i + 1].children[j].style.background = "#f1ce31";
-        this.updateFreq(1, undefined, i, j);
-        
-      }
+      this.updateShortestPath(colorIndex, this.grid.nativeElement.children[i + 1].children[j]);
     }
   }
 
@@ -534,10 +546,10 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.currentLevelInPaths = lvl;
     for(let x = 0; x < 4; x++) {
       let i, j;
-      if(this.paths[lvl] == undefined)
+      if(this.paths[lvl - 1] == undefined)
         return true;
-      i = this.paths[lvl].verticalPos + this.dirY[x];
-      j = this.paths[lvl].horizontalPos + this.dirX[x];
+      i = this.paths[lvl - 1].verticalPos + this.dirY[x];
+      j = this.paths[lvl - 1].horizontalPos + this.dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
