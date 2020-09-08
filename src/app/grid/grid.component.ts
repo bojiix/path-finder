@@ -483,13 +483,14 @@ export class GridComponent implements OnInit, AfterViewInit {
     
     for(let x = 0; x < 4; x++) {
       let i, j;
-      if(this.paths[lvl] == undefined)
+      if(this.shortestPath[lvl] == undefined)
         return true;
       i = this.shortestPath[lvl].verticalPos + this.dirY[x];
       j = this.shortestPath[lvl].horizontalPos + this.dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
+      console.log('lvl ', lvl);
       if(!this.paths.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint)) || this.shortestPath.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint))) {
         console.log('rejected', newPoint, 'for', this.shortestPath[lvl]);
         continue;
@@ -498,6 +499,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       await this.delay(this.speed);
       //console.log(newPoint);
       this.shortestPath.push(newPoint);
+      console.log('end? ', JSON.stringify(newPoint) === JSON.stringify(this.endPoint));
       if(JSON.stringify(newPoint) === JSON.stringify(this.endPoint)) {
         if(this.mini > this.shortestPath.length) {
           this.mini = this.shortestPath.length;
