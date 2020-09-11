@@ -455,9 +455,11 @@ export class GridComponent implements OnInit, AfterViewInit {
         if(value == true) {
           this.shortestPath.push(this.startPoint);
           this.mini = this.horizontalGridSize * this.verticalGridSize + 1;
-          this.colorOffset = 256 / this.paths.length;
+          this.colorOffset = Math.floor(255 / this.paths.length) + 1;
           //console.log(this.paths);
-          this.test1(1, Math.random() * 3);//.then(() => this.interCommService.setMessage('reset-button'));
+          let colorIndex = Math.floor(Math.random() * Math.floor(3));
+          colorIndex = 0;
+          this.test1(1, colorIndex);//.then(() => this.interCommService.setMessage('reset-button'));
         }
       };
       this.test(this.currentLevelInPaths).then(value => result(value));
@@ -482,23 +484,29 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   mini;
   colorOffset;
+  RGB = ['R', 'G', 'B'];
 
   updateShortestPath(colorIndex = 0, i = undefined, j = undefined, el = undefined) {
     if(el != undefined) {
-      this.addPaths(el);
+      //this.addPaths(el);
+      this.updateFreq(2, el, undefined, undefined);
     }else {
-      let color = this.colorPreset.defaultColor.shortestPathNodeDefault + this.colorOffset;
+      let color = this.colorPreset.defaultColor.shortestPathNodeDefault;
+      let colorOffset = this.colorOffset;
+
       if(i != undefined && j != undefined) {
-        this.grid.nativeElement.children[i].children[j].style.background = color;
+        //this.grid.nativeElement.children[i].children[j].style.background = color;
         this.updateFreq(1, undefined, i - 1, j);
         return;
       }
+      console.log('fooor', color, colorOffset, this.paths.length);
       for(let x = 1; x < this.shortestPath.length - 1; x++) {
         //let i, j;
-        //console.log(this.shortestPath[x]);
+        console.log(color);
         i = this.shortestPath[x].verticalPos;
         j = this.shortestPath[x].horizontalPos;
-        this.grid.nativeElement.children[i + 1].children[j].style.background = color;
+        this.grid.nativeElement.children[i + 1].children[j].style.background = this.colorPreset.getColor(color);
+        this.colorPreset.changeColor(color, colorOffset, this.RGB)
         this.updateFreq(1, undefined, i, j);
       }
     }
@@ -510,7 +518,9 @@ export class GridComponent implements OnInit, AfterViewInit {
       if(this.mini > this.shortestPath.length) {
         this.mini = this.shortestPath.length;
         this.updateShortestPath(colorIndex);
+        console.log(this.shortestPath);
       }
+      //await this.delay(this.speed);
       return false;
     }
     let is = true;
@@ -521,22 +531,21 @@ export class GridComponent implements OnInit, AfterViewInit {
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
-      console.log('lvl ', lvl);
+      //console.log('lvl ', lvl);
       if(!this.paths.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint)) || this.shortestPath.find(obj => JSON.stringify(obj) === JSON.stringify(newPoint))) {
-        console.log('rejected', newPoint, 'for', this.shortestPath[lvl - 1]);
+        //console.log('rejected', newPoint, 'for', this.shortestPath[lvl - 1]);
         continue;
       }
-      console.log('accepted', newPoint, 'for', this.shortestPath[lvl - 1], this.shortestPath);
-      //await this.delay(this.speed);
+      //console.log('accepted', newPoint, 'for', this.shortestPath[lvl - 1], this.shortestPath);
       //console.log(newPoint);
       this.shortestPath.push(newPoint);
       this.updateShortestPath(colorIndex, i + 1, j);
       is = this.test1(lvl + 1, colorIndex);
       if(is == false)
         return false;
-      console.log('adawd, popped', newPoint, is);
+      //console.log('adawd, popped', newPoint, is);
       this.shortestPath.pop();
-      this.updateShortestPath(colorIndex, this.grid.nativeElement.children[i + 1].children[j]);
+      this.updateShortestPath(colorIndex, undefined, undefined, this.grid.nativeElement.children[i + 1].children[j]);
     }
   }
 

@@ -6,6 +6,14 @@ export interface Colors {
     weightNode:string;
     unvisitedNode:string;
     visitedNode:string;
-    shortestPathNodeDefault:string;
+    shortestPathNodeDefault:RGB;
     wallNode:string;
+}
+
+export interface RGB {
+    R:number;
+    G:number;
+    B:number;
+    index:number;
+    asc:boolean;
 }
