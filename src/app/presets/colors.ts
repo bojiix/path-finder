@@ -37,7 +37,7 @@ export class Colors {
       return el;
     }
 
-    changeOffset(el) {
+    changeOffset(el) {//prototype
       let offset = 0;
       offset = 255 - el;
       return offset;
