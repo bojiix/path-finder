@@ -532,7 +532,7 @@ export class GridComponent implements OnInit, AfterViewInit {
           pos = 'translate(0%, 45%)';
         }else if(j < nj) {
           angle = 'rotate(-45deg)';
-          pos = 'translate(-20%, -70%)';
+          pos = 'translate(-20%, -70%)';// translate(-{border-sum}px, -{2*padding}px)
         }
         block.style.transform = angle + ' ' + pos;
         await this.delay(50);
