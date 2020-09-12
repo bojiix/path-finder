@@ -455,7 +455,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         if(value == true) {
           this.shortestPath.push(this.startPoint);
           this.mini = this.horizontalGridSize * this.verticalGridSize + 1;
-          this.colorOffset = Math.floor(255 / this.paths.length) + 1;
+          this.colorOffset = Math.floor(255 / this.paths.length) + 10;
           //console.log(this.paths);
           let colorIndex = Math.floor(Math.random() * Math.floor(3));
           colorIndex = 0;
@@ -486,7 +486,7 @@ export class GridComponent implements OnInit, AfterViewInit {
   colorOffset;
   RGB = ['R', 'G', 'B'];
 
-  updateShortestPath(colorIndex = 0, i = undefined, j = undefined, el = undefined) {
+  async updateShortestPath(colorIndex = 0, i = undefined, j = undefined, el = undefined) {
     if(el != undefined) {
       //this.addPaths(el);
       this.updateFreq(2, el, undefined, undefined);
@@ -501,13 +501,41 @@ export class GridComponent implements OnInit, AfterViewInit {
       }
       console.log('fooor', color, colorOffset, this.paths.length);
       for(let x = 1; x < this.shortestPath.length - 1; x++) {
-        //let i, j;
+        let ni, nj;
         console.log(color);
         i = this.shortestPath[x].verticalPos;
         j = this.shortestPath[x].horizontalPos;
+        ni = this.shortestPath[x + 1].verticalPos;
+        nj = this.shortestPath[x + 1].horizontalPos;
         this.grid.nativeElement.children[i + 1].children[j].style.background = this.colorPreset.getColor(color);
         this.colorPreset.changeColor(color, colorOffset, this.RGB)
         this.updateFreq(1, undefined, i, j);
+        let block = this.renderer.createElement('div');
+        block.setAttribute("class", "start-node");
+        this.renderer.appendChild(this.grid.nativeElement.children[i + 1].children[j], block);
+        //console.log(block.style);
+        block.style.borderWidth = '0 1px 1px 0';
+        block.style.padding = '2px';
+        block.style.position = 'absolute';
+        block.style.top = '50%';
+        block.style.left = '50%';
+        block.style.borderColor = '#000';
+        let angle = 'rotate(45deg)', pos = 'translate(-20%, -70%)';
+        if(i > ni) {
+          angle = 'rotate(-135deg)';
+          pos = 'translate(0%, -45%)';
+        }else if(i < ni) {
+          angle = 'rotate(45deg)';
+          pos = 'translate(-45%, 0%)';
+        }else if(j > nj) {
+          angle = 'rotate(135deg)';
+          pos = 'translate(0%, 45%)';
+        }else if(j < nj) {
+          angle = 'rotate(-45deg)';
+          pos = 'translate(-20%, -70%)';
+        }
+        block.style.transform = angle + ' ' + pos;
+        await this.delay(50);
       }
     }
   }

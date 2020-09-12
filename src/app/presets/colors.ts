@@ -45,7 +45,7 @@ export class Colors {
 
     changeColor(el, off, rgb) {
       if(el.asc == true) {
-        if(el[rgb[el.index]] + off > 255) {
+        if(el[rgb[el.index]] + off > 200) {
           if(el.index == 2)
             el.asc = false;
           this.nextIndex(el);
@@ -54,7 +54,7 @@ export class Colors {
         }
       }
       if(el.asc == false) {
-        if(el[rgb[el.index]] - off < 0) {
+        if(el[rgb[el.index]] - off < 55) {
           if(el.index == 2)
             el.asc = true;
           this.nextIndex(el);
