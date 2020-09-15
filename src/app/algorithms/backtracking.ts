@@ -1,4 +1,12 @@
-import { GlobalVariables, delay, DragPoint, RGB, dirX, dirY } from "./globals";
+import {
+  GlobalVariables,
+  delay,
+  DragPoint,
+  RGB,
+  dirX,
+  dirY,
+  addPaths,
+} from "./globals";
 import { Injectable } from "@angular/core";
 
 @Injectable({
@@ -7,8 +15,6 @@ import { Injectable } from "@angular/core";
 export class BackTracking {
   paths: Array<DragPoint> = [];
   shortestPath: Array<DragPoint> = [];
-  horizontalGridSize: number;
-  verticalGridSize: number = 30;
   stopAlgo: boolean = false;
   currentLevelInPaths: number = 0;
   colorOffset;
@@ -21,7 +27,10 @@ export class BackTracking {
       console.log(value);
       if (value == true) {
         this.shortestPath.push(GlobalVariables.startPoint);
-        this.mini = this.horizontalGridSize * this.verticalGridSize + 1;
+        this.mini =
+          GlobalVariables.horizontalGridSize *
+            GlobalVariables.verticalGridSize +
+          1;
         this.colorOffset = Math.floor(255 / this.paths.length) + 10;
         //console.log(this.paths);
         GlobalVariables.colorIndex = Math.floor(Math.random() * Math.floor(3));
@@ -50,7 +59,7 @@ export class BackTracking {
         i < 0 ||
         i >= 30 ||
         j < 0 ||
-        j >= this.horizontalGridSize ||
+        j >= GlobalVariables.horizontalGridSize ||
         this.paths.find(
           (obj) => obj.verticalPos == i && obj.horizontalPos == j
         ) ||
@@ -65,7 +74,7 @@ export class BackTracking {
         JSON.stringify(GlobalVariables.endPoint)
       )
         return true;
-      this.addPaths(this.grid.nativeElement.children[i + 1].children[j]);
+      addPaths(GlobalVariables.grid.nativeElement.children[i + 1].children[j]);
       //console.log(this.endPoint == this.paths[this.paths.length - 1]);
       await delay(GlobalVariables.speed);
     }
@@ -85,7 +94,7 @@ export class BackTracking {
     ) {
       if (this.mini > this.shortestPath.length) {
         this.mini = this.shortestPath.length;
-        this.updateShortestPath(colorIndex);
+        this.updateShortestPath(GlobalVariables.colorIndex);
         console.log(this.shortestPath);
       }
       //await this.delay(this.speed);
@@ -114,16 +123,16 @@ export class BackTracking {
       //console.log('accepted', newPoint, 'for', this.shortestPath[lvl - 1], this.shortestPath);
       //console.log(newPoint);
       this.shortestPath.push(newPoint);
-      this.updateShortestPath(colorIndex, i + 1, j);
-      is = this.test1(lvl + 1, colorIndex);
+      this.updateShortestPath(GlobalVariables.colorIndex, i + 1, j);
+      is = this.test1(lvl + 1);
       if (is == false) return false;
       //console.log('adawd, popped', newPoint, is);
       this.shortestPath.pop();
       this.updateShortestPath(
-        colorIndex,
+        GlobalVariables.colorIndex,
         undefined,
         undefined,
-        this.grid.nativeElement.children[i + 1].children[j]
+        GlobalVariables.grid.nativeElement.children[i + 1].children[j]
       );
     }
   }

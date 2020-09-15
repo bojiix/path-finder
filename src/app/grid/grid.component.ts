@@ -10,7 +10,13 @@ import { DraggablesService } from "../services/draggables.service";
 import { InterCommunicationService } from "../services/inter-communication.service";
 import { Colors as ColorPreset } from "../presets/colors";
 import { BackTracking } from "../algorithms/backtracking";
-import { GlobalVariables, DragPoint, algorithms } from "../algorithms/globals";
+import {
+  GlobalVariables,
+  DragPoint,
+  algorithms,
+  dirX,
+  dirY,
+} from "../algorithms/globals";
 
 @Component({
   selector: "app-grid",
@@ -32,14 +38,6 @@ export class GridComponent implements OnInit, AfterViewInit {
   chosenAlgorithm = "";
   paths: Array<DragPoint> = [];
   shortestPath: Array<DragPoint> = [];
-  startPoint: DragPoint;
-  endPoint: DragPoint;
-  dirY: number[] = [-1, 0, 1, 0];
-  dirX: number[] = [0, 1, 0, -1];
-  dirYcomplex: number[] = [-1, -1, 0, 1, 1, 1, 0, -1];
-  dirXcomplex: number[] = [0, 1, 1, 1, 0, -1, -1, -1];
-  horizontalGridSize: number;
-  verticalGridSize: number = 30;
   stopAlgo: boolean = false;
   currentLevelInPaths: number = 0;
   speed: number = 0;
@@ -54,6 +52,8 @@ export class GridComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngAfterViewInit() {
+    GlobalVariables.grid = this.grid;
+    GlobalVariables.colorPreset = this.colorPreset;
     //Grid.grid = this.grid;
     this.createGrid();
     //this.runWorker();
@@ -273,9 +273,9 @@ export class GridComponent implements OnInit, AfterViewInit {
       window.getComputedStyle(this.grid.nativeElement).width
     );
     const hLength = Math.floor(nWidth / blockSize) - 1;
-    const vLength = this.verticalGridSize;
+    const vLength = GlobalVariables.verticalGridSize;
 
-    this.horizontalGridSize = hLength;
+    GlobalVariables.horizontalGridSize = hLength;
 
     for (let i = 0; i < vLength; i++) {
       const row = this.renderer.createElement("div");
@@ -521,7 +521,7 @@ export class GridComponent implements OnInit, AfterViewInit {
 
   visualize() {
     if (this.paths.length == 0) {
-      this.paths.push(this.startPoint);
+      this.paths.push(GlobalVariables.startPoint);
       this.currentLevelInPaths = 1;
     }
     if (this.chosenAlgorithm == "Dijkstra's Algorithm") {
@@ -635,11 +635,11 @@ export class GridComponent implements OnInit, AfterViewInit {
     console.log(
       "end? ",
       JSON.stringify(this.shortestPath[lvl - 1]) ===
-        JSON.stringify(this.endPoint)
+        JSON.stringify(GlobalVariables.endPoint)
     );
     if (
       JSON.stringify(this.shortestPath[lvl - 1]) ===
-      JSON.stringify(this.endPoint)
+      JSON.stringify(GlobalVariables.endPoint)
     ) {
       if (this.mini > this.shortestPath.length) {
         this.mini = this.shortestPath.length;
@@ -652,8 +652,8 @@ export class GridComponent implements OnInit, AfterViewInit {
     let is = true;
     for (let x = 0; x < 4; x++) {
       let i, j;
-      i = this.shortestPath[lvl - 1].verticalPos + this.dirY[x];
-      j = this.shortestPath[lvl - 1].horizontalPos + this.dirX[x];
+      i = this.shortestPath[lvl - 1].verticalPos + dirY[x];
+      j = this.shortestPath[lvl - 1].horizontalPos + dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
@@ -692,8 +692,8 @@ export class GridComponent implements OnInit, AfterViewInit {
     for (let x = 0; x < 4; x++) {
       let i, j;
       if (this.paths[lvl - 1] == undefined) return true;
-      i = this.paths[lvl - 1].verticalPos + this.dirY[x];
-      j = this.paths[lvl - 1].horizontalPos + this.dirX[x];
+      i = this.paths[lvl - 1].verticalPos + dirY[x];
+      j = this.paths[lvl - 1].horizontalPos + dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
@@ -701,7 +701,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         i < 0 ||
         i >= 30 ||
         j < 0 ||
-        j >= this.horizontalGridSize ||
+        j >= GlobalVariables.horizontalGridSize ||
         this.paths.find(
           (obj) => obj.verticalPos == i && obj.horizontalPos == j
         ) ||
@@ -713,7 +713,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       this.paths.push(newPoint);
       if (
         JSON.stringify(this.paths[this.paths.length - 1]) ===
-        JSON.stringify(this.endPoint)
+        JSON.stringify(GlobalVariables.endPoint)
       )
         return true;
       this.addPaths(this.grid.nativeElement.children[i + 1].children[j]);
