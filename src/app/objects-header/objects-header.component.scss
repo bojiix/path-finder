@@ -134,7 +134,7 @@ $shortest-path: rgb(241, 206, 49);
     transform: translateY($y-pos);
 }
 
-$wall: rgb(85, 33, 33);
+$wall: #2e3c5a;
 
 .wall {
     background: $wall;

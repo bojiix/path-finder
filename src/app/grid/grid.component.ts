@@ -341,7 +341,7 @@ export class GridComponent implements OnInit, AfterViewInit {
     if(el.className == 'grid-block' && Array.from(el.children).length == 0 && freq != 1 && freq != 2) {
       if(this.erase == false) {
         //console.log(el.style);
-        el.style.background = "#552121";
+        el.style.background = "#2e3c5a";
         this.updateFreq(3, el, undefined, undefined);
       }else {
         el.style.background = "none";
@@ -508,7 +508,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         ni = this.shortestPath[x + 1].verticalPos;
         nj = this.shortestPath[x + 1].horizontalPos;
         this.grid.nativeElement.children[i + 1].children[j].style.background = this.colorPreset.getColor(color);
-        this.colorPreset.changeColor(color, colorOffset, this.RGB)
+        //this.colorPreset.changeColor(color, colorOffset, this.RGB)
         this.updateFreq(1, undefined, i, j);
         let block = this.renderer.createElement('div');
         block.setAttribute("class", "start-node");
@@ -519,7 +519,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         block.style.position = 'absolute';
         block.style.top = '50%';
         block.style.left = '50%';
-        block.style.borderColor = '#000';
+        block.style.borderColor = '#2e3c5a';
         let angle = 'rotate(45deg)', pos = 'translate(-20%, -70%)';
         if(i > ni) {
           angle = 'rotate(-135deg)';
@@ -607,6 +607,7 @@ export class GridComponent implements OnInit, AfterViewInit {
   addPaths(el) {
     if(el.className == 'grid-block' && Array.from(el.children).length == 0) {
       el.style.background = "#2bb9c3";
+      el.style.borderColor = '#fff';
       this.updateFreq(2, el, undefined, undefined);
       return true;
     }
