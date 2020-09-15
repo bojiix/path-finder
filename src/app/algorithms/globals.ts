@@ -1,4 +1,4 @@
-import { ElementRef } from "@angular/core";
+import { ElementRef, Renderer2 } from "@angular/core";
 import { Colors as ColorPreset } from "../presets/colors";
 
 export class GlobalVariables {
@@ -11,6 +11,11 @@ export class GlobalVariables {
   public static verticalGridSize: number = 30;
   public static grid: ElementRef;
   public static colorPreset: ColorPreset;
+  public static renderer: Renderer2;
+  public static paths: Array<DragPoint> = [];
+  public static shortestPath: Array<DragPoint> = [];
+  public static currentLevelInPaths: number = 0;
+  public static minimum: number;
 }
 
 export function delay(ms: number) {
@@ -39,7 +44,7 @@ export const algorithms = [
 export const speeds: Array<Speed> = [
   {
     text: "Fastest",
-    value: 0,
+    value: 1,
   },
   {
     text: "Very Fast",
@@ -89,7 +94,6 @@ export function updateFreq(
   j?: number
 ) {
   if (el == window) {
-    delete GlobalVariables.draggables[val];
     return -1;
   }
 
@@ -134,7 +138,7 @@ export async function updateShortestPath(
 
     if (i != undefined && j != undefined) {
       //this.grid.nativeElement.children[i].children[j].style.background = color;
-      this.updateFreq(1, undefined, i - 1, j);
+      updateFreq(1, undefined, i - 1, j);
       return;
     }
     console.log("fooor", color, colorOffset, this.paths.length);
@@ -149,11 +153,11 @@ export async function updateShortestPath(
         j
       ].style.background = this.colorPreset.getColor(color);
       //this.colorPreset.changeColor(color, colorOffset, this.RGB)
-      this.updateFreq(1, undefined, i, j);
-      let block = this.renderer.createElement("div");
+      updateFreq(1, undefined, i, j);
+      let block = GlobalVariables.renderer.createElement("div");
       block.setAttribute("class", "start-node");
-      this.renderer.appendChild(
-        this.grid.nativeElement.children[i + 1].children[j],
+      GlobalVariables.renderer.appendChild(
+        GlobalVariables.grid.nativeElement.children[i + 1].children[j],
         block
       );
       //console.log(block.style);

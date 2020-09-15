@@ -16,6 +16,8 @@ import {
   algorithms,
   dirX,
   dirY,
+  updateFreq,
+  updateShortestPath
 } from "../algorithms/globals";
 
 @Component({
@@ -36,11 +38,8 @@ export class GridComponent implements OnInit, AfterViewInit {
   mousedown: boolean = false;
   erase: boolean = false;
   chosenAlgorithm = "";
-  paths: Array<DragPoint> = [];
-  shortestPath: Array<DragPoint> = [];
   stopAlgo: boolean = false;
   currentLevelInPaths: number = 0;
-  speed: number = 0;
 
   constructor(
     private renderer: Renderer2,
@@ -49,12 +48,12 @@ export class GridComponent implements OnInit, AfterViewInit {
     private interCommService: InterCommunicationService,
     private colorPreset: ColorPreset,
     private bt: BackTracking
-  ) {}
+  ) { }
 
   ngAfterViewInit() {
     GlobalVariables.grid = this.grid;
     GlobalVariables.colorPreset = this.colorPreset;
-    //Grid.grid = this.grid;
+    GlobalVariables.renderer = this.renderer;
     this.createGrid();
     //this.runWorker();
   }
@@ -102,7 +101,6 @@ export class GridComponent implements OnInit, AfterViewInit {
       (e) => {
         e.stopPropagation();
         this.mousedown = false;
-        //this.erase--;
       },
       true
     );
@@ -173,7 +171,7 @@ export class GridComponent implements OnInit, AfterViewInit {
                 );
                 this.renderer.appendChild(parent, block);
                 this.renderer.appendChild(blockToAddIn, parent);
-                this.updateFreq(block.className, undefined, i - 1, j);
+                updateFreq(block.className, undefined, i - 1, j);
                 break;
               }
             }
@@ -183,75 +181,6 @@ export class GridComponent implements OnInit, AfterViewInit {
       } else {
       }
     });
-  }
-
-  clearBoard() {
-    this.erase = true;
-    const rows = Array.from(this.grid.nativeElement.children);
-    for (let [i, row] of rows.entries()) {
-      if (i > 0) {
-        const rowArray = Array.from((<any>row).children);
-        for (let [j, block] of rowArray.entries()) {
-          if (this.addOrRemoveWall(block) == false) {
-            (<any>block).style.background = "none";
-            this.updateFreq(0, undefined, i - 1, j);
-            Array.from((<any>block).children).forEach((child) => {
-              this.renderer.removeChild(block, child);
-            });
-          }
-        }
-      }
-    }
-    this.draggables = {};
-    //console.log("erased");
-    this.erase = false;
-    this.currentLevelInPaths = 0;
-    this.paths = [];
-  }
-
-  clearWallsAndWeight() {
-    this.erase = true;
-    const rows = Array.from(this.grid.nativeElement.children);
-    for (let [i, row] of rows.entries()) {
-      if (i > 0) {
-        const rowArray = Array.from((<any>row).children);
-        for (let [j, block] of rowArray.entries()) {
-          if (
-            this.addOrRemoveWall(block, GlobalVariables.freq_table[i - 1][j]) ==
-            false
-          ) {
-            if (GlobalVariables.freq_table[i - 1][j] == "weight") {
-              this.updateFreq(0, undefined, i - 1, j);
-              Array.from((<any>block).children).forEach((child) => {
-                this.renderer.removeChild(block, child);
-                //this.draggables['weight-node square']--;
-                //console.log(this.draggables);
-              });
-            }
-          }
-        }
-      }
-    }
-    delete this.draggables["weight-node square"];
-    this.erase = false;
-  }
-
-  clearPaths() {
-    for (let x = 0; x < this.paths.length; x++) {
-      let i, j;
-      i = this.paths[x].verticalPos;
-      j = this.paths[x].horizontalPos;
-      if (
-        GlobalVariables.freq_table[i][j] == 1 ||
-        GlobalVariables.freq_table[i][j] == 2
-      ) {
-        this.updateFreq(0, undefined, i, j);
-        this.grid.nativeElement.children[i + 1].children[j].style.background =
-          "none";
-      }
-    }
-    this.currentLevelInPaths = 0;
-    this.paths = [];
   }
 
   createGrid() {
@@ -362,40 +291,77 @@ export class GridComponent implements OnInit, AfterViewInit {
       }
     });
     this.draggables = {};
-    this.paths = [];
+    GlobalVariables.paths = [];
     GlobalVariables.freq_table = [];
   }
 
-  updateFreq(val: string | number, el?: any, i?: number, j?: number) {
-    if (el == window) {
-      delete this.draggables[val];
-      return -1;
+  clearBoard() {
+    this.erase = true;
+    const rows = Array.from(this.grid.nativeElement.children);
+    for (let [i, row] of rows.entries()) {
+      if (i > 0) {
+        const rowArray = Array.from((<any>row).children);
+        for (let [j, block] of rowArray.entries()) {
+          if (this.addOrRemoveWall(block) == false) {
+            (<any>block).style.background = "none";
+            updateFreq(0, undefined, i - 1, j);
+            Array.from((<any>block).children).forEach((child) => {
+              this.renderer.removeChild(block, child);
+            });
+          }
+        }
+      }
     }
+    this.draggables = {};
+    //console.log("erased");
+    this.erase = false;
+    this.currentLevelInPaths = 0;
+    GlobalVariables.paths = [];
+  }
 
-    if (el != undefined && (i == undefined || j == undefined)) {
-      i =
-        Array.from(el.parentNode.parentNode.children).indexOf(el.parentNode) -
-        1;
-      j = Array.from(el.parentNode.children).indexOf(el);
+  clearPaths() {
+    for (let x = 0; x < GlobalVariables.paths.length; x++) {
+      let i, j;
+      i = GlobalVariables.paths[x].verticalPos;
+      j = GlobalVariables.paths[x].horizontalPos;
+      if (
+        GlobalVariables.freq_table[i][j] == 1 ||
+        GlobalVariables.freq_table[i][j] == 2
+      ) {
+        updateFreq(0, undefined, i, j);
+        this.grid.nativeElement.children[i + 1].children[j].style.background =
+          "none";
+      }
     }
+    this.currentLevelInPaths = 0;
+    GlobalVariables.paths = [];
+  }
 
-    if (typeof val === "string") {
-      val = val.split(/[- ]/)[0];
+  clearWallsAndWeight() {
+    this.erase = true;
+    const rows = Array.from(this.grid.nativeElement.children);
+    for (let [i, row] of rows.entries()) {
+      if (i > 0) {
+        const rowArray = Array.from((<any>row).children);
+        for (let [j, block] of rowArray.entries()) {
+          if (
+            this.addOrRemoveWall(block, GlobalVariables.freq_table[i - 1][j]) ==
+            false
+          ) {
+            if (GlobalVariables.freq_table[i - 1][j] == "weight") {
+              updateFreq(0, undefined, i - 1, j);
+              Array.from((<any>block).children).forEach((child) => {
+                this.renderer.removeChild(block, child);
+                //this.draggables['weight-node square']--;
+                //console.log(this.draggables);
+              });
+            }
+          }
+        }
+      }
     }
-    GlobalVariables.freq_table[i][j] = val;
-    //console.log(i, j);
-    if (val == "start") {
-      GlobalVariables.startPoint = {
-        verticalPos: i,
-        horizontalPos: j,
-      };
-    } else if (val == "end") {
-      GlobalVariables.endPoint = {
-        verticalPos: i,
-        horizontalPos: j,
-      };
-    }
-    //console.log(this.freq_table);
+    delete this.draggables["weight-node square"];
+    this.erase = false;
   }
 
   addOrRemoveWall(el, freq: string | number = -1) {
@@ -416,15 +382,17 @@ export class GridComponent implements OnInit, AfterViewInit {
       if (this.erase == false) {
         //console.log(el.style);
         el.style.background = "#2e3c5a";
-        this.updateFreq(3, el, undefined, undefined);
+        updateFreq(3, el, undefined, undefined);
       } else {
         el.style.background = "none";
-        this.updateFreq(0, el, undefined, undefined); //this will erase the drawn paths too
+        updateFreq(0, el, undefined, undefined); //this will erase the drawn paths too
       }
       return true;
     }
     return false;
   }
+
+  //////////// events
 
   alert() {
     if (window.confirm("Beware!") == true) {
@@ -489,13 +457,14 @@ export class GridComponent implements OnInit, AfterViewInit {
     GlobalVariables.freq_table[i][j] = 0;
 
     if (
-      this.updateFreq(
+      updateFreq(
         this.dragged.firstElementChild.className,
         event.currentTarget,
         undefined,
         undefined
       ) == -1
     ) {
+      delete this.draggables[this.dragged.firstElementChild.className];
       this.dragged.parentNode.removeChild(this.dragged);
       return;
     }
@@ -511,7 +480,6 @@ export class GridComponent implements OnInit, AfterViewInit {
   }
 
   onMouseDown(event) {
-    //this.erase++;
     if (event.which != "1") return;
     this.mousedown = true;
     this.addOrRemoveWall(event.currentTarget);
@@ -520,10 +488,6 @@ export class GridComponent implements OnInit, AfterViewInit {
   //////////////// Visualize
 
   visualize() {
-    if (this.paths.length == 0) {
-      this.paths.push(GlobalVariables.startPoint);
-      this.currentLevelInPaths = 1;
-    }
     if (this.chosenAlgorithm == "Dijkstra's Algorithm") {
       this.dijkstra();
     } else if (this.chosenAlgorithm == "A* Search") {
@@ -532,220 +496,31 @@ export class GridComponent implements OnInit, AfterViewInit {
       this.greedybfs();
     } else if (this.chosenAlgorithm == "Back-tracking") {
       this.backtracking();
-      // const result = (value) => {
-      //   console.log(value);
-      //   if (value == true) {
-      //     this.shortestPath.push(this.startPoint);
-      //     this.mini = this.horizontalGridSize * this.verticalGridSize + 1;
-      //     this.colorOffset = Math.floor(255 / this.paths.length) + 10;
-      //     //console.log(this.paths);
-      //     let colorIndex = Math.floor(Math.random() * Math.floor(3));
-      //     colorIndex = 0;
-      //     this.test1(1, colorIndex); //.then(() => this.interCommService.setMessage('reset-button'));
-      //   }
-      // };
-      // this.test(this.currentLevelInPaths).then((value) => result(value));
     }
   }
 
-  dijkstra() {}
+  dijkstra() { }
 
-  astar() {}
+  astar() { }
 
-  greedybfs() {}
+  greedybfs() { }
 
   backtracking() {
     if (this.stopAlgo == false) {
-      this.bt.start();
+      this.bt.start(); //back-tracking start
     } else {
       this.bt.stop();
     }
   }
 
-  mini;
-  colorOffset;
-  RGB = ["R", "G", "B"];
-
-  async updateShortestPath(
-    colorIndex = 0,
-    i = undefined,
-    j = undefined,
-    el = undefined
-  ) {
-    if (el != undefined) {
-      //this.addPaths(el);
-      this.updateFreq(2, el, undefined, undefined);
-    } else {
-      let color = this.colorPreset.defaultColor.shortestPathNodeDefault;
-      let colorOffset = this.colorOffset;
-
-      if (i != undefined && j != undefined) {
-        //this.grid.nativeElement.children[i].children[j].style.background = color;
-        this.updateFreq(1, undefined, i - 1, j);
-        return;
-      }
-      console.log("fooor", color, colorOffset, this.paths.length);
-      for (let x = 1; x < this.shortestPath.length - 1; x++) {
-        let ni, nj;
-        console.log(color);
-        i = this.shortestPath[x].verticalPos;
-        j = this.shortestPath[x].horizontalPos;
-        ni = this.shortestPath[x + 1].verticalPos;
-        nj = this.shortestPath[x + 1].horizontalPos;
-        this.grid.nativeElement.children[i + 1].children[
-          j
-        ].style.background = this.colorPreset.getColor(color);
-        //this.colorPreset.changeColor(color, colorOffset, this.RGB)
-        this.updateFreq(1, undefined, i, j);
-        let block = this.renderer.createElement("div");
-        block.setAttribute("class", "start-node");
-        this.renderer.appendChild(
-          this.grid.nativeElement.children[i + 1].children[j],
-          block
-        );
-        //console.log(block.style);
-        block.style.borderWidth = "0 1px 1px 0";
-        block.style.padding = "2px";
-        block.style.position = "absolute";
-        block.style.top = "50%";
-        block.style.left = "50%";
-        block.style.borderColor = "#2e3c5a";
-        let angle = "rotate(45deg)",
-          pos = "translate(-20%, -70%)";
-        if (i > ni) {
-          angle = "rotate(-135deg)";
-          pos = "translate(0%, -45%)";
-        } else if (i < ni) {
-          angle = "rotate(45deg)";
-          pos = "translate(-45%, 0%)";
-        } else if (j > nj) {
-          angle = "rotate(135deg)";
-          pos = "translate(0%, 45%)";
-        } else if (j < nj) {
-          angle = "rotate(-45deg)";
-          pos = "translate(-20%, -70%)"; // translate(-{border-sum}px, -{2*padding}px)
-        }
-        block.style.transform = angle + " " + pos;
-        await this.delay(50);
-      }
-    }
-  }
-
-  test1(lvl, colorIndex) {
-    console.log(
-      "end? ",
-      JSON.stringify(this.shortestPath[lvl - 1]) ===
-        JSON.stringify(GlobalVariables.endPoint)
-    );
-    if (
-      JSON.stringify(this.shortestPath[lvl - 1]) ===
-      JSON.stringify(GlobalVariables.endPoint)
-    ) {
-      if (this.mini > this.shortestPath.length) {
-        this.mini = this.shortestPath.length;
-        this.updateShortestPath(colorIndex);
-        console.log(this.shortestPath);
-      }
-      //await this.delay(this.speed);
-      return false;
-    }
-    let is = true;
-    for (let x = 0; x < 4; x++) {
-      let i, j;
-      i = this.shortestPath[lvl - 1].verticalPos + dirY[x];
-      j = this.shortestPath[lvl - 1].horizontalPos + dirX[x];
-      let newPoint = {} as DragPoint;
-      newPoint.verticalPos = i;
-      newPoint.horizontalPos = j;
-      //console.log('lvl ', lvl);
-      if (
-        !this.paths.find(
-          (obj) => JSON.stringify(obj) === JSON.stringify(newPoint)
-        ) ||
-        this.shortestPath.find(
-          (obj) => JSON.stringify(obj) === JSON.stringify(newPoint)
-        )
-      ) {
-        //console.log('rejected', newPoint, 'for', this.shortestPath[lvl - 1]);
-        continue;
-      }
-      //console.log('accepted', newPoint, 'for', this.shortestPath[lvl - 1], this.shortestPath);
-      //console.log(newPoint);
-      this.shortestPath.push(newPoint);
-      this.updateShortestPath(colorIndex, i + 1, j);
-      is = this.test1(lvl + 1, colorIndex);
-      if (is == false) return false;
-      //console.log('adawd, popped', newPoint, is);
-      this.shortestPath.pop();
-      this.updateShortestPath(
-        colorIndex,
-        undefined,
-        undefined,
-        this.grid.nativeElement.children[i + 1].children[j]
-      );
-    }
-  }
-
-  async test(lvl) {
-    if (this.stopAlgo == true) return false;
-    this.currentLevelInPaths = lvl;
-    for (let x = 0; x < 4; x++) {
-      let i, j;
-      if (this.paths[lvl - 1] == undefined) return true;
-      i = this.paths[lvl - 1].verticalPos + dirY[x];
-      j = this.paths[lvl - 1].horizontalPos + dirX[x];
-      let newPoint = {} as DragPoint;
-      newPoint.verticalPos = i;
-      newPoint.horizontalPos = j;
-      if (
-        i < 0 ||
-        i >= 30 ||
-        j < 0 ||
-        j >= GlobalVariables.horizontalGridSize ||
-        this.paths.find(
-          (obj) => obj.verticalPos == i && obj.horizontalPos == j
-        ) ||
-        (GlobalVariables.freq_table[i][j] != 0 &&
-          GlobalVariables.freq_table[i][j] != "end")
-      ) {
-        continue;
-      }
-      this.paths.push(newPoint);
-      if (
-        JSON.stringify(this.paths[this.paths.length - 1]) ===
-        JSON.stringify(GlobalVariables.endPoint)
-      )
-        return true;
-      this.addPaths(this.grid.nativeElement.children[i + 1].children[j]);
-      //console.log(this.endPoint == this.paths[this.paths.length - 1]);
-      await this.delay(this.speed);
-    }
-    //await this.delay(500);
-    return this.test(lvl + 1);
-  }
-
-  addPaths(el) {
-    if (el.className == "grid-block" && Array.from(el.children).length == 0) {
-      el.style.background = "#2bb9c3";
-      el.style.borderColor = "#fff";
-      this.updateFreq(2, el, undefined, undefined);
-      return true;
-    }
-    return false;
-  }
-
-  /////////////
-
-  private delay(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
+  ////////////////////////////
 
   runWorker() {
     if (typeof Worker !== "undefined") {
       const worker = new Worker("./grid.worker", {
         type: "module",
       });
-      worker.onmessage = ({ data }) => {};
+      worker.onmessage = ({ data }) => { };
       worker.postMessage(this.grid.nativeElement.offsetWidth);
     } else {
     }
