@@ -18,7 +18,7 @@ export class BackTracking {
 
   constructor() {}
 
-  start() {
+  start(interCommService) {
     this.stopAlgo = false;
     if (GlobalVariables.paths.length == 0) {
       GlobalVariables.paths.push(GlobalVariables.startPoint);
@@ -33,29 +33,21 @@ export class BackTracking {
             GlobalVariables.verticalGridSize +
           1;
         GlobalVariables.colorOffset = GlobalVariables.colorPreset.getColorOffset();
-        //console.log(this.paths);
         GlobalVariables.colorIndex = Math.floor(Math.random() * Math.floor(3));
-        this.do();
-        // const result1 = (value) => {
-        //   console.log("value", value);
-        //   GlobalVariables.shortestPath.forEach((el) => {
-        //     console.log("el", el);
-        //   });
-        //   //updateShortestPath(GlobalVariables.colorIndex);
-        //   //this.interCommService.setMessage('reset-button')
-        // };
-        // this.secondWave(1).then((value) => result1(value));
+        const result1 = (value) => {
+          console.log("value", value);
+          GlobalVariables.shortestPath.forEach((el) => {
+            console.log("el", el);
+          });
+          updateShortestPath(GlobalVariables.colorIndex);
+          interCommService.setMessage("reset-button");
+        };
+        this.secondWave(1).then((value) => result1(value));
       }
     };
     this.firstWave(GlobalVariables.currentLevelInPaths).then((value) =>
       result(value)
     );
-  }
-
-  do() {
-    this.secondWave(1);
-    //console.log(GlobalVariables.shortestPath);
-    //updateShortestPath(GlobalVariables.colorIndex);
   }
 
   stop() {
@@ -94,7 +86,6 @@ export class BackTracking {
       )
         return true;
       addPaths(GlobalVariables.grid.nativeElement.children[i + 1].children[j]);
-      //console.log(this.endPoint == this.paths[this.paths.length - 1]);
       await delay(GlobalVariables.speed);
     }
     //await this.delay(500);
@@ -115,7 +106,8 @@ export class BackTracking {
         ) ||
         this.currentPath.find(
           (obj) => JSON.stringify(obj) === JSON.stringify(newPoint)
-        )
+        ) ||
+        GlobalVariables.freq_table[i][j] == 3
       ) {
         continue;
       }
@@ -135,9 +127,9 @@ export class BackTracking {
       }
       this.currentPath.push(newPoint);
       updateShortestPath(GlobalVariables.colorIndex, i + 1, j);
-      await delay(350);
+      await delay(5);
       console.log("fdf");
-      this.secondWave(lvl + 1);
+      await this.secondWave(lvl + 1);
       console.log("fdf1");
       this.currentPath.pop();
       updateShortestPath(

@@ -131,9 +131,8 @@ export async function updateShortestPath(
   el = undefined
 ) {
   if (el != undefined) {
-    //this.addPaths(el);
-    // el.style.background = GlobalVariables.colorPreset.defaultColor.wallNode;
-    updateFreq(2, el, undefined, undefined);
+    addPaths(el);
+    //updateFreq(2, el, undefined, undefined);
   } else {
     let color =
       GlobalVariables.colorPreset.defaultColor.shortestPathNodeDefault;

@@ -17,8 +17,9 @@ import {
   dirX,
   dirY,
   updateFreq,
-  updateShortestPath
+  updateShortestPath,
 } from "../algorithms/globals";
+import styles from "src/styles.scss";
 
 @Component({
   selector: "app-grid",
@@ -48,7 +49,7 @@ export class GridComponent implements OnInit, AfterViewInit {
     private interCommService: InterCommunicationService,
     private colorPreset: ColorPreset,
     private bt: BackTracking
-  ) { }
+  ) {}
 
   ngAfterViewInit() {
     GlobalVariables.grid = this.grid;
@@ -376,12 +377,12 @@ export class GridComponent implements OnInit, AfterViewInit {
     if (
       el.className == "grid-block" &&
       Array.from(el.children).length == 0 &&
-      freq != 1 &&
-      freq != 2
+      freq != 1 //&&
+      //freq != 2
     ) {
       if (this.erase == false) {
         //console.log(el.style);
-        el.style.background = "#2e3c5a";
+        el.style.background = styles["colors-wall"];
         updateFreq(3, el, undefined, undefined);
       } else {
         el.style.background = "none";
@@ -499,15 +500,15 @@ export class GridComponent implements OnInit, AfterViewInit {
     }
   }
 
-  dijkstra() { }
+  dijkstra() {}
 
-  astar() { }
+  astar() {}
 
-  greedybfs() { }
+  greedybfs() {}
 
   backtracking() {
     if (this.stopAlgo == false) {
-      this.bt.start(); //back-tracking start
+      this.bt.start(this.interCommService); //back-tracking start
     } else {
       this.bt.stop();
     }
@@ -520,7 +521,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       const worker = new Worker("./grid.worker", {
         type: "module",
       });
-      worker.onmessage = ({ data }) => { };
+      worker.onmessage = ({ data }) => {};
       worker.postMessage(this.grid.nativeElement.offsetWidth);
     } else {
     }

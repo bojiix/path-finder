@@ -5,10 +5,10 @@ export interface globalScss {
   "colors-light": string;
   "colors-primary": string;
   "colors-secondary": string;
-  "color-visited1": string;
-  "color-visited2": string;
-  "color-wall": string;
-  "color-path": string;
+  "colors-visited1": string;
+  "colors-visited2": string;
+  "colors-wall": string;
+  "colors-path": string;
 }
 
 export const styles: globalScss;
