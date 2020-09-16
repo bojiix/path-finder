@@ -5,7 +5,7 @@ import {
   dirX,
   dirY,
   addPaths,
-  updateShortestPath
+  updateShortestPath,
 } from "./globals";
 import { Injectable } from "@angular/core";
 
@@ -14,9 +14,9 @@ import { Injectable } from "@angular/core";
 })
 export class BackTracking {
   stopAlgo: boolean = false;
-  colorOffset;
+  currentPath: Array<DragPoint> = [];
 
-  constructor() { }
+  constructor() {}
 
   start() {
     this.stopAlgo = false;
@@ -27,18 +27,35 @@ export class BackTracking {
     const result = (value) => {
       console.log(value);
       if (value == true) {
-        GlobalVariables.shortestPath.push(GlobalVariables.startPoint);
+        this.currentPath.push(GlobalVariables.startPoint);
         GlobalVariables.minimum =
           GlobalVariables.horizontalGridSize *
-          GlobalVariables.verticalGridSize +
+            GlobalVariables.verticalGridSize +
           1;
-        this.colorOffset = GlobalVariables.colorPreset.getColorOffset();
+        GlobalVariables.colorOffset = GlobalVariables.colorPreset.getColorOffset();
         //console.log(this.paths);
         GlobalVariables.colorIndex = Math.floor(Math.random() * Math.floor(3));
-        this.secondWave(1); //.then(() => this.interCommService.setMessage('reset-button'));
+        this.do();
+        // const result1 = (value) => {
+        //   console.log("value", value);
+        //   GlobalVariables.shortestPath.forEach((el) => {
+        //     console.log("el", el);
+        //   });
+        //   //updateShortestPath(GlobalVariables.colorIndex);
+        //   //this.interCommService.setMessage('reset-button')
+        // };
+        // this.secondWave(1).then((value) => result1(value));
       }
     };
-    this.firstWave(GlobalVariables.currentLevelInPaths).then((value) => result(value));
+    this.firstWave(GlobalVariables.currentLevelInPaths).then((value) =>
+      result(value)
+    );
+  }
+
+  do() {
+    this.secondWave(1);
+    //console.log(GlobalVariables.shortestPath);
+    //updateShortestPath(GlobalVariables.colorIndex);
   }
 
   stop() {
@@ -71,8 +88,9 @@ export class BackTracking {
       }
       GlobalVariables.paths.push(newPoint);
       if (
-        JSON.stringify(GlobalVariables.paths[GlobalVariables.paths.length - 1]) ===
-        JSON.stringify(GlobalVariables.endPoint)
+        JSON.stringify(
+          GlobalVariables.paths[GlobalVariables.paths.length - 1]
+        ) === JSON.stringify(GlobalVariables.endPoint)
       )
         return true;
       addPaths(GlobalVariables.grid.nativeElement.children[i + 1].children[j]);
@@ -83,52 +101,45 @@ export class BackTracking {
     return this.firstWave(lvl + 1);
   }
 
-  secondWave(lvl) {
-    // console.log(
-    //   "end? ",
-    //   JSON.stringify(GlobalVariables.shortestPath[lvl - 1]) ===
-    //   JSON.stringify(GlobalVariables.endPoint)
-    // );
-    if (
-      JSON.stringify(GlobalVariables.shortestPath[lvl - 1]) ===
-      JSON.stringify(GlobalVariables.endPoint)
-    ) {
-      if (GlobalVariables.minimum > GlobalVariables.shortestPath.length) {
-        GlobalVariables.minimum = GlobalVariables.shortestPath.length;
-        updateShortestPath(GlobalVariables.colorIndex);
-        console.log(GlobalVariables.shortestPath);
-      }
-      //await this.delay(this.speed);
-      return false;
-    }
-    let is = true;
+  async secondWave(lvl) {
     for (let x = 0; x < 4; x++) {
       let i, j;
-      i = GlobalVariables.shortestPath[lvl - 1].verticalPos + dirY[x];
-      j = GlobalVariables.shortestPath[lvl - 1].horizontalPos + dirX[x];
+      i = this.currentPath[lvl - 1].verticalPos + dirY[x];
+      j = this.currentPath[lvl - 1].horizontalPos + dirX[x];
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
-      //console.log('lvl ', lvl);
       if (
         !GlobalVariables.paths.find(
           (obj) => JSON.stringify(obj) === JSON.stringify(newPoint)
         ) ||
-        GlobalVariables.shortestPath.find(
+        this.currentPath.find(
           (obj) => JSON.stringify(obj) === JSON.stringify(newPoint)
         )
       ) {
-        //console.log('rejected', newPoint, 'for', this.shortestPath[lvl - 1]);
         continue;
       }
-      //console.log('accepted', newPoint, 'for', this.shortestPath[lvl - 1], this.shortestPath);
-      //console.log(newPoint);
-      GlobalVariables.shortestPath.push(newPoint);
+
+      if (
+        JSON.stringify(newPoint) === JSON.stringify(GlobalVariables.endPoint)
+      ) {
+        if (
+          this.currentPath.length + 1 < GlobalVariables.shortestPath.length ||
+          GlobalVariables.shortestPath.length == 0
+        ) {
+          GlobalVariables.minimum = this.currentPath.length;
+          GlobalVariables.shortestPath = this.currentPath.slice();
+          GlobalVariables.shortestPath.push(GlobalVariables.endPoint);
+        }
+        continue;
+      }
+      this.currentPath.push(newPoint);
       updateShortestPath(GlobalVariables.colorIndex, i + 1, j);
-      is = this.secondWave(lvl + 1);
-      if (is == false) return false;
-      //console.log('adawd, popped', newPoint, is);
-      GlobalVariables.shortestPath.pop();
+      await delay(350);
+      console.log("fdf");
+      this.secondWave(lvl + 1);
+      console.log("fdf1");
+      this.currentPath.pop();
       updateShortestPath(
         GlobalVariables.colorIndex,
         undefined,

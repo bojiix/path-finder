@@ -1,173 +1,172 @@
+@use "sass:map";
+@import "src/styles";
+
 $black: #000;
 $white: #fff;
 
 .header {
-    width: 100%;
-    color: rgb(0, 0, 0);
-    font-size: 18px;
-    font-family: consolas;
+  width: 100%;
+  color: rgb(0, 0, 0);
+  font-size: 18px;
+  font-family: consolas;
 }
 
 .container {
-    position: relative;
-    width: 85%;
-    padding: 20px 0;
-    margin: 0 auto;
+  position: relative;
+  width: 85%;
+  padding: 20px 0;
+  margin: 0 auto;
 }
 
 .horiz-list {
-    width: 100%;
-    display: block;
+  width: 100%;
+  display: block;
 }
 
-.horiz-list  {
-    & > div {
-        display: inline-block;
-        margin-right: 20px;
-    }
-    & > .draggable {
-        cursor: pointer;
-    }
-    & > div:last-of-type {
-        margin-right: 0;
-    }
+.horiz-list {
+  & > div {
+    display: inline-block;
+    margin-right: 20px;
+  }
+  & > .draggable {
+    cursor: pointer;
+  }
+  & > div:last-of-type {
+    margin-right: 0;
+  }
 }
 
 $y-pos: 3px;
 $sq-sz: 18px;
 
 .start-node {
-    cursor: pointer;
-    display: inline-block;
-    border: solid #2e3c5a;
-    border-width: 0 4px 4px 0;
-    padding: 4px;
-    transform: translateY(1px) rotate(-45deg);
+  cursor: pointer;
+  display: inline-block;
+  border: solid #2e3c5a;
+  border-width: 0 4px 4px 0;
+  padding: 4px;
+  transform: translateY(1px) rotate(-45deg);
 }
 
 .square {
-    display: inline-block;
-    width: $sq-sz;
-    height: $sq-sz;
+  display: inline-block;
+  width: $sq-sz;
+  height: $sq-sz;
 }
 
 .end-node {
-    position: relative;
+  position: relative;
+  background: #2e3c5a;
+  border-radius: 50%;
+  transform: translateY($y-pos);
+  div {
+    width: $sq-sz / 2 - 2;
+    height: $sq-sz / 2 - 2;
     background: #2e3c5a;
+    border: 2px solid #fff;
     border-radius: 50%;
-    transform: translateY($y-pos);
-    div {
-        width: $sq-sz / 2 - 2; 
-        height: $sq-sz / 2 - 2; 
-        background: #2e3c5a; 
-        border: 2px solid #fff; 
-        border-radius: 50%; 
-        position: absolute; 
-        top: 50%; 
-        left: 50%; 
-        transform: translate(-50%, -50%);
-    }
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .bomb-node {
-    position: relative;
-    background: #2e3c5a;
-    border-radius: 50%;
-    transform: translateY($y-pos);
-    div {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: $white;
-        font-weight: bold;
-        font-size: 14px;
-    }
+  position: relative;
+  background: #2e3c5a;
+  border-radius: 50%;
+  transform: translateY($y-pos);
+  div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: $white;
+    font-weight: bold;
+    font-size: 14px;
+  }
 }
 
 .weight-node {
-    position: relative;
-    background: #2e3c5a;
+  position: relative;
+  background: #2e3c5a;
+  border-top-left-radius: 50%;
+  border-top-right-radius: 50%;
+  transform: translateY($y-pos);
+  div {
+    position: absolute;
+    width: $sq-sz - 5px;
+    height: $sq-sz / 3 - 2px;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: $white;
     border-top-left-radius: 50%;
     border-top-right-radius: 50%;
-    transform: translateY($y-pos);
-    div {
-        position: absolute;
-        width: $sq-sz - 5px;
-        height: $sq-sz / 3 - 2px;
-        top: 4px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: $white;
-        border-top-left-radius: 50%;
-        border-top-right-radius: 50%;
-    }
+  }
 }
 
 .vertical-line {
-    opacity: 0.5;
+  opacity: 0.5;
 }
 
 .unvisited {
-    border: 1px solid #000;
-    transform: translateY(4px);
+  border: 1px solid #000;
+  transform: translateY(4px);
 }
 
-$visited1: rgb(115, 222, 241);
-$visited2: rgb(197, 106, 206);
+$visited1: map.get($colors, "visited1");
+$visited2: map.get($colors, "visited2");
 
 .visited1 {
-    background: $visited1;
-    transform: translateY($y-pos);
-    margin-right: 5px;
+  background: $visited1;
+  transform: translateY($y-pos);
+  margin-right: 5px;
 }
 
 .visited2 {
-    background: $visited2;
-    transform: translateY($y-pos);
+  background: $visited2;
+  transform: translateY($y-pos);
 }
 
-$shortest-path: rgb(241, 206, 49);
+$shortest-path: map.get($colors, "path");
 
 .shortest-path {
-    background: $shortest-path;
-    transform: translateY($y-pos);
+  background: $shortest-path;
+  transform: translateY($y-pos);
 }
 
-$wall: #2e3c5a;
+$wall: map.get($colors, "wall");
 
 .wall {
-    background: $wall;
-    transform: translateY($y-pos);
+  background: $wall;
+  transform: translateY($y-pos);
 }
 
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
-    
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
 @media only screen and (min-width: 600px) {
-    
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
 @media only screen and (min-width: 768px) {
-    
 }
 
 /* Large devices (laptops/desktops, 992px and up) */
 @media only screen and (min-width: 992px) {
-    
 }
 
 /* Extra large devices (large laptops and desktops, 1200px and up) */
 @media only screen and (min-width: 1200px) {
-
 }
 
 @media only screen and (max-width: 1650px) {
-    .vertical-line, .unselectables {
-        display: none !important;
-    }
+  .vertical-line,
+  .unselectables {
+    display: none !important;
+  }
 }

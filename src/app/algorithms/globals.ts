@@ -1,5 +1,6 @@
 import { ElementRef, Renderer2 } from "@angular/core";
 import { Colors as ColorPreset } from "../presets/colors";
+import styles from "src/styles.scss";
 
 export class GlobalVariables {
   public static startPoint: DragPoint;
@@ -16,6 +17,7 @@ export class GlobalVariables {
   public static shortestPath: Array<DragPoint> = [];
   public static currentLevelInPaths: number = 0;
   public static minimum: number;
+  public static colorOffset: number;
 }
 
 export function delay(ms: number) {
@@ -79,7 +81,7 @@ export interface Speed {
 
 export function addPaths(el) {
   if (el.className == "grid-block" && Array.from(el.children).length == 0) {
-    el.style.background = "#2bb9c3";
+    el.style.background = styles["colors-visited1"];
     el.style.borderColor = "#fff";
     updateFreq(2, el, undefined, undefined);
     return true;
@@ -130,28 +132,31 @@ export async function updateShortestPath(
 ) {
   if (el != undefined) {
     //this.addPaths(el);
+    // el.style.background = GlobalVariables.colorPreset.defaultColor.wallNode;
     updateFreq(2, el, undefined, undefined);
   } else {
     let color =
       GlobalVariables.colorPreset.defaultColor.shortestPathNodeDefault;
-    let colorOffset = this.colorOffset;
+    let colorOffset = GlobalVariables.colorOffset;
 
     if (i != undefined && j != undefined) {
-      //this.grid.nativeElement.children[i].children[j].style.background = color;
+      GlobalVariables.grid.nativeElement.children[i].children[
+        j
+      ].style.background = GlobalVariables.colorPreset.getColor(color);
       updateFreq(1, undefined, i - 1, j);
       return;
     }
-    console.log("fooor", color, colorOffset, this.paths.length);
-    for (let x = 1; x < this.shortestPath.length - 1; x++) {
+    console.log("fooor", color, colorOffset, GlobalVariables.paths.length);
+    for (let x = 1; x < GlobalVariables.shortestPath.length - 1; x++) {
       let ni, nj;
       console.log(color);
-      i = this.shortestPath[x].verticalPos;
-      j = this.shortestPath[x].horizontalPos;
-      ni = this.shortestPath[x + 1].verticalPos;
-      nj = this.shortestPath[x + 1].horizontalPos;
-      this.grid.nativeElement.children[i + 1].children[
+      i = GlobalVariables.shortestPath[x].verticalPos;
+      j = GlobalVariables.shortestPath[x].horizontalPos;
+      ni = GlobalVariables.shortestPath[x + 1].verticalPos;
+      nj = GlobalVariables.shortestPath[x + 1].horizontalPos;
+      GlobalVariables.grid.nativeElement.children[i + 1].children[
         j
-      ].style.background = this.colorPreset.getColor(color);
+      ].style.background = GlobalVariables.colorPreset.getColor(color);
       //this.colorPreset.changeColor(color, colorOffset, this.RGB)
       updateFreq(1, undefined, i, j);
       let block = GlobalVariables.renderer.createElement("div");
@@ -183,7 +188,7 @@ export async function updateShortestPath(
         pos = "translate(-20%, -70%)"; // translate(-{border-sum}px, -{2*padding}px)
       }
       block.style.transform = angle + " " + pos;
-      await this.delay(50);
+      await delay(50);
     }
   }
 }
