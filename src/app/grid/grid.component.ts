@@ -48,7 +48,7 @@ export class GridComponent implements OnInit, AfterViewInit {
     private interCommService: InterCommunicationService,
     private colorPreset: ColorPreset,
     private bt: BackTracking
-  ) {}
+  ) { }
 
   ngAfterViewInit() {
     GlobalVariables.grid = this.grid;
@@ -297,9 +297,11 @@ export class GridComponent implements OnInit, AfterViewInit {
     });
     this.draggables = {};
     GlobalVariables.currentLevelInPaths = 0;
+    GlobalVariables.currentLevelInShortestPath = 0;
     GlobalVariables.paths = [];
     GlobalVariables.freq_table = [];
     GlobalVariables.shortestPath = [];
+    this.bt.clear();
   }
 
   clearBoard() {
@@ -324,8 +326,10 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.eraseWall = aux;
     this.draggables = {};
     GlobalVariables.currentLevelInPaths = 0;
+    GlobalVariables.currentLevelInShortestPath = 0;
     GlobalVariables.paths = [];
     GlobalVariables.shortestPath = [];
+    this.bt.clear();
   }
 
   clearWallsAndWeight() {
@@ -371,8 +375,10 @@ export class GridComponent implements OnInit, AfterViewInit {
       }
     }
     GlobalVariables.currentLevelInPaths = 0;
+    GlobalVariables.currentLevelInShortestPath = 0;
     GlobalVariables.paths = [];
     GlobalVariables.shortestPath = [];
+    this.bt.clear();
   }
 
   addOrRemoveWall(el, freq: string | number = -1) {
@@ -394,9 +400,11 @@ export class GridComponent implements OnInit, AfterViewInit {
         //console.log(el.style);
         el.style.background = styles["colors-wall"];
         updateFreq(3, el, undefined, undefined);
-      } else {
+      } else if (freq != 2) {
         el.style.background = "none";
         updateFreq(0, el, undefined, undefined); //this will eraseWall the drawn paths too
+      } else if (freq == 2) {
+        return false;
       }
       return true;
     }
@@ -510,11 +518,11 @@ export class GridComponent implements OnInit, AfterViewInit {
     }
   }
 
-  dijkstra() {}
+  dijkstra() { }
 
-  astar() {}
+  astar() { }
 
-  greedybfs() {}
+  greedybfs() { }
 
   backtracking() {
     if (this.stopAlgo == false) {
@@ -531,7 +539,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       const worker = new Worker("./grid.worker", {
         type: "module",
       });
-      worker.onmessage = ({ data }) => {};
+      worker.onmessage = ({ data }) => { };
       worker.postMessage(this.grid.nativeElement.offsetWidth);
     } else {
     }

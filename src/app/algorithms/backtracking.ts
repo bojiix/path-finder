@@ -8,6 +8,7 @@ import {
   updateShortestPath,
 } from "./globals";
 import { Injectable } from "@angular/core";
+import { VirtualTimeScheduler } from 'rxjs';
 
 @Injectable({
   providedIn: "root",
@@ -17,7 +18,7 @@ export class BackTracking {
   currentPath: Array<DragPoint> = [];
   minimum;
 
-  constructor() {}
+  constructor() { }
 
   start(interCommService) {
     this.stopAlgo = false;
@@ -26,7 +27,7 @@ export class BackTracking {
       GlobalVariables.currentLevelInPaths = 1;
     }
     const result1 = (value) => {
-      if (this.stopAlgo == true) return;
+      this.clear();
       console.log("value", value);
       GlobalVariables.shortestPath.forEach((el) => {
         console.log("el", el);
@@ -40,7 +41,7 @@ export class BackTracking {
         this.currentPath.push(GlobalVariables.startPoint);
         this.minimum =
           GlobalVariables.horizontalGridSize *
-            GlobalVariables.verticalGridSize +
+          GlobalVariables.verticalGridSize +
           1;
         GlobalVariables.colorOffset = GlobalVariables.colorPreset.getColorOffset();
         GlobalVariables.colorIndex = Math.floor(Math.random() * Math.floor(3));
@@ -55,15 +56,15 @@ export class BackTracking {
       this.firstWave(GlobalVariables.currentLevelInPaths).then((value) =>
         result(value)
       );
-    } else {
-      this.secondWave(
-        GlobalVariables.currentLevelInShortestPath
-      ).then((value) => result1(value));
     }
   }
 
   stop() {
     this.stopAlgo = true;
+  }
+
+  clear() {
+    this.currentPath = [];
   }
 
   async firstWave(lvl) {
@@ -104,9 +105,10 @@ export class BackTracking {
     return this.firstWave(lvl + 1);
   }
 
-  async secondWave(lvl): Promise<void | boolean> {
-    GlobalVariables.currentLevelInShortestPath = lvl;
-    if (this.stopAlgo == true) return false;
+  async secondWave(lvl) {
+    while (this.stopAlgo == true) {
+      await delay(1);
+    }
     for (let x = 0; x < 4; x++) {
       let i, j;
       i = this.currentPath[lvl - 1].verticalPos + dirY[x];
@@ -141,11 +143,8 @@ export class BackTracking {
       }
       this.currentPath.push(newPoint);
       updateShortestPath(GlobalVariables.colorIndex, i + 1, j);
-      await delay(5);
-      console.log("fdf");
-      let should_continue = await this.secondWave(lvl + 1);
-      if (should_continue == true) return false;
-      console.log("fdf1");
+      await delay(1);
+      await this.secondWave(lvl + 1);
       this.currentPath.pop();
       updateShortestPath(
         GlobalVariables.colorIndex,
