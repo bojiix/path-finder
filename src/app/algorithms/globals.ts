@@ -16,7 +16,7 @@ export class GlobalVariables {
   public static paths: Array<DragPoint> = [];
   public static shortestPath: Array<DragPoint> = [];
   public static currentLevelInPaths: number = 0;
-  public static minimum: number;
+  public static currentLevelInShortestPath: number = 0;
   public static colorOffset: number;
 }
 
@@ -82,7 +82,7 @@ export interface Speed {
 export function addPaths(el) {
   if (el.className == "grid-block" && Array.from(el.children).length == 0) {
     el.style.background = styles["colors-visited1"];
-    el.style.borderColor = "#fff";
+    //el.style.borderColor = "#fff";
     updateFreq(2, el, undefined, undefined);
     return true;
   }

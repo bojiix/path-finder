@@ -37,10 +37,9 @@ export class GridComponent implements OnInit, AfterViewInit {
   windowWidth;
   node_type: string[] = ["start", "end", "bomb", "weight", "wall"]; ////!!!!!!!!!!???
   mousedown: boolean = false;
-  erase: boolean = false;
+  eraseWall: boolean = false;
   chosenAlgorithm = "";
   stopAlgo: boolean = false;
-  currentLevelInPaths: number = 0;
 
   constructor(
     private renderer: Renderer2,
@@ -71,7 +70,7 @@ export class GridComponent implements OnInit, AfterViewInit {
         this.clearBoard();
       } else if (message == "clear-walls-weight") {
         this.clearWallsAndWeight();
-      } else if (message == "clear-paths") {
+      } else if (message == "clear-path") {
         this.clearPaths();
       } else if (algorithms.indexOf(message) > -1) {
         this.chosenAlgorithm = message;
@@ -109,9 +108,9 @@ export class GridComponent implements OnInit, AfterViewInit {
       "dblclick",
       (e) => {
         e.stopPropagation();
-        this.erase = !this.erase;
+        this.eraseWall = !this.eraseWall;
         this.grid.nativeElement.style.cursor = "cell";
-        if (this.erase == true) {
+        if (this.eraseWall == true) {
           this.grid.nativeElement.style.cursor = "pointer";
           this.addOrRemoveWall(e.target);
         }
@@ -280,7 +279,12 @@ export class GridComponent implements OnInit, AfterViewInit {
     this.grid.nativeElement.setAttribute("id", "grid-new");
   }
 
+  stopAlgorithm() {
+    this.interCommService.setMessage("stop-visualizing");
+  }
+
   destroyGrid() {
+    this.stopAlgorithm();
     let first = true;
     this.grid.nativeElement.setAttribute("id", "grid");
     const children = Array.from(this.grid.nativeElement.children);
@@ -292,12 +296,16 @@ export class GridComponent implements OnInit, AfterViewInit {
       }
     });
     this.draggables = {};
+    GlobalVariables.currentLevelInPaths = 0;
     GlobalVariables.paths = [];
     GlobalVariables.freq_table = [];
+    GlobalVariables.shortestPath = [];
   }
 
   clearBoard() {
-    this.erase = true;
+    this.stopAlgorithm();
+    let aux = this.eraseWall;
+    this.eraseWall = true;
     const rows = Array.from(this.grid.nativeElement.children);
     for (let [i, row] of rows.entries()) {
       if (i > 0) {
@@ -313,33 +321,17 @@ export class GridComponent implements OnInit, AfterViewInit {
         }
       }
     }
+    this.eraseWall = aux;
     this.draggables = {};
-    //console.log("erased");
-    this.erase = false;
-    this.currentLevelInPaths = 0;
+    GlobalVariables.currentLevelInPaths = 0;
     GlobalVariables.paths = [];
-  }
-
-  clearPaths() {
-    for (let x = 0; x < GlobalVariables.paths.length; x++) {
-      let i, j;
-      i = GlobalVariables.paths[x].verticalPos;
-      j = GlobalVariables.paths[x].horizontalPos;
-      if (
-        GlobalVariables.freq_table[i][j] == 1 ||
-        GlobalVariables.freq_table[i][j] == 2
-      ) {
-        updateFreq(0, undefined, i, j);
-        this.grid.nativeElement.children[i + 1].children[j].style.background =
-          "none";
-      }
-    }
-    this.currentLevelInPaths = 0;
-    GlobalVariables.paths = [];
+    GlobalVariables.shortestPath = [];
   }
 
   clearWallsAndWeight() {
-    this.erase = true;
+    this.stopAlgorithm();
+    let aux = this.eraseWall;
+    this.eraseWall = true;
     const rows = Array.from(this.grid.nativeElement.children);
     for (let [i, row] of rows.entries()) {
       if (i > 0) {
@@ -353,16 +345,34 @@ export class GridComponent implements OnInit, AfterViewInit {
               updateFreq(0, undefined, i - 1, j);
               Array.from((<any>block).children).forEach((child) => {
                 this.renderer.removeChild(block, child);
-                //this.draggables['weight-node square']--;
-                //console.log(this.draggables);
               });
             }
           }
         }
       }
     }
+    this.eraseWall = aux;
     delete this.draggables["weight-node square"];
-    this.erase = false;
+  }
+
+  clearPaths() {
+    this.stopAlgorithm();
+    for (let x = 0; x < GlobalVariables.paths.length; x++) {
+      let i, j;
+      i = GlobalVariables.paths[x].verticalPos;
+      j = GlobalVariables.paths[x].horizontalPos;
+      if (
+        GlobalVariables.freq_table[i][j] == 1 ||
+        GlobalVariables.freq_table[i][j] == 2
+      ) {
+        updateFreq(0, undefined, i, j);
+        this.grid.nativeElement.children[i + 1].children[j].style.background =
+          "none";
+      }
+    }
+    GlobalVariables.currentLevelInPaths = 0;
+    GlobalVariables.paths = [];
+    GlobalVariables.shortestPath = [];
   }
 
   addOrRemoveWall(el, freq: string | number = -1) {
@@ -380,13 +390,13 @@ export class GridComponent implements OnInit, AfterViewInit {
       freq != 1 //&&
       //freq != 2
     ) {
-      if (this.erase == false) {
+      if (this.eraseWall == false) {
         //console.log(el.style);
         el.style.background = styles["colors-wall"];
         updateFreq(3, el, undefined, undefined);
       } else {
         el.style.background = "none";
-        updateFreq(0, el, undefined, undefined); //this will erase the drawn paths too
+        updateFreq(0, el, undefined, undefined); //this will eraseWall the drawn paths too
       }
       return true;
     }

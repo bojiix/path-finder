@@ -15,6 +15,7 @@ import { Injectable } from "@angular/core";
 export class BackTracking {
   stopAlgo: boolean = false;
   currentPath: Array<DragPoint> = [];
+  minimum;
 
   constructor() {}
 
@@ -24,30 +25,41 @@ export class BackTracking {
       GlobalVariables.paths.push(GlobalVariables.startPoint);
       GlobalVariables.currentLevelInPaths = 1;
     }
+    const result1 = (value) => {
+      if (this.stopAlgo == true) return;
+      console.log("value", value);
+      GlobalVariables.shortestPath.forEach((el) => {
+        console.log("el", el);
+      });
+      updateShortestPath(GlobalVariables.colorIndex);
+      interCommService.setMessage("reset-button");
+    };
     const result = (value) => {
       console.log(value);
       if (value == true) {
         this.currentPath.push(GlobalVariables.startPoint);
-        GlobalVariables.minimum =
+        this.minimum =
           GlobalVariables.horizontalGridSize *
             GlobalVariables.verticalGridSize +
           1;
         GlobalVariables.colorOffset = GlobalVariables.colorPreset.getColorOffset();
         GlobalVariables.colorIndex = Math.floor(Math.random() * Math.floor(3));
-        const result1 = (value) => {
-          console.log("value", value);
-          GlobalVariables.shortestPath.forEach((el) => {
-            console.log("el", el);
-          });
-          updateShortestPath(GlobalVariables.colorIndex);
-          interCommService.setMessage("reset-button");
-        };
-        this.secondWave(1).then((value) => result1(value));
+
+        this.secondWave(
+          GlobalVariables.currentLevelInShortestPath
+        ).then((value) => result1(value));
       }
     };
-    this.firstWave(GlobalVariables.currentLevelInPaths).then((value) =>
-      result(value)
-    );
+    if (GlobalVariables.shortestPath.length == 0) {
+      GlobalVariables.currentLevelInShortestPath = 1;
+      this.firstWave(GlobalVariables.currentLevelInPaths).then((value) =>
+        result(value)
+      );
+    } else {
+      this.secondWave(
+        GlobalVariables.currentLevelInShortestPath
+      ).then((value) => result1(value));
+    }
   }
 
   stop() {
@@ -55,8 +67,8 @@ export class BackTracking {
   }
 
   async firstWave(lvl) {
-    if (this.stopAlgo == true) return false;
     GlobalVariables.currentLevelInPaths = lvl;
+    if (this.stopAlgo == true) return false;
     for (let x = 0; x < 4; x++) {
       let i, j;
       if (GlobalVariables.paths[lvl - 1] == undefined) return true;
@@ -92,7 +104,9 @@ export class BackTracking {
     return this.firstWave(lvl + 1);
   }
 
-  async secondWave(lvl) {
+  async secondWave(lvl): Promise<void | boolean> {
+    GlobalVariables.currentLevelInShortestPath = lvl;
+    if (this.stopAlgo == true) return false;
     for (let x = 0; x < 4; x++) {
       let i, j;
       i = this.currentPath[lvl - 1].verticalPos + dirY[x];
@@ -119,7 +133,7 @@ export class BackTracking {
           this.currentPath.length + 1 < GlobalVariables.shortestPath.length ||
           GlobalVariables.shortestPath.length == 0
         ) {
-          GlobalVariables.minimum = this.currentPath.length;
+          this.minimum = this.currentPath.length;
           GlobalVariables.shortestPath = this.currentPath.slice();
           GlobalVariables.shortestPath.push(GlobalVariables.endPoint);
         }
@@ -129,7 +143,8 @@ export class BackTracking {
       updateShortestPath(GlobalVariables.colorIndex, i + 1, j);
       await delay(5);
       console.log("fdf");
-      await this.secondWave(lvl + 1);
+      let should_continue = await this.secondWave(lvl + 1);
+      if (should_continue == true) return false;
       console.log("fdf1");
       this.currentPath.pop();
       updateShortestPath(
