@@ -44,3 +44,7 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+
+
+
+#"homepage": "https://github.com/bojiix/path-finder#readme",
