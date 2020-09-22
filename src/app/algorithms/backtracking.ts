@@ -6,6 +6,7 @@ import {
   dirY,
   addPaths,
   updateShortestPath,
+  is_valid,
 } from "./globals";
 import { Injectable } from "@angular/core";
 import { VirtualTimeScheduler } from "rxjs";
@@ -26,7 +27,7 @@ export class BackTracking {
       GlobalVariables.paths.push(GlobalVariables.startPoint);
       GlobalVariables.currentLevelInPaths = 1;
     }
-    const result1 = (value) => {
+    const finalResult = (value) => {
       this.clear();
       console.log("value", value);
       GlobalVariables.shortestPath.forEach((el) => {
@@ -35,7 +36,7 @@ export class BackTracking {
       updateShortestPath(GlobalVariables.colorIndex);
       interCommService.setMessage("reset-button");
     };
-    const result = (value) => {
+    const initialResult = (value) => {
       console.log(value);
       if (value == true) {
         GlobalVariables.currentLevelInShortestPath = 1;
@@ -49,13 +50,13 @@ export class BackTracking {
 
         this.secondWave(
           GlobalVariables.currentLevelInShortestPath
-        ).then((value) => result1(value));
+        ).then((value) => finalResult(value));
       }
     };
     if (GlobalVariables.currentLevelInShortestPath == 0) {
       console.log("sh", GlobalVariables.shortestPath);
       this.firstWave(GlobalVariables.currentLevelInPaths).then((value) =>
-        result(value)
+        initialResult(value)
       );
     }
   }
@@ -79,17 +80,7 @@ export class BackTracking {
       let newPoint = {} as DragPoint;
       newPoint.verticalPos = i;
       newPoint.horizontalPos = j;
-      if (
-        i < 0 ||
-        i >= GlobalVariables.verticalGridSize ||
-        j < 0 ||
-        j >= GlobalVariables.horizontalGridSize ||
-        GlobalVariables.paths.find(
-          (obj) => obj.verticalPos == i && obj.horizontalPos == j
-        ) ||
-        (GlobalVariables.freq_table[i][j] != 0 &&
-          GlobalVariables.freq_table[i][j] != "end")
-      ) {
+      if (is_valid(i, j) == false) {
         continue;
       }
       GlobalVariables.paths.push(newPoint);

@@ -10,6 +10,7 @@ import { DraggablesService } from "../services/draggables.service";
 import { InterCommunicationService } from "../services/inter-communication.service";
 import { Colors as ColorPreset } from "../presets/colors";
 import { BackTracking } from "../algorithms/backtracking";
+import { Dijkstra } from "../algorithms/dijkstra";
 import {
   GlobalVariables,
   DragPoint,
@@ -47,8 +48,9 @@ export class GridComponent implements OnInit, AfterViewInit {
     private dragService: DraggablesService,
     private interCommService: InterCommunicationService,
     private colorPreset: ColorPreset,
-    private bt: BackTracking
-  ) { }
+    private bt: BackTracking,
+    private dij: Dijkstra
+  ) {}
 
   ngAfterViewInit() {
     GlobalVariables.grid = this.grid;
@@ -518,11 +520,17 @@ export class GridComponent implements OnInit, AfterViewInit {
     }
   }
 
-  dijkstra() { }
+  dijkstra() {
+    if (this.stopAlgo == false) {
+      this.dij.start(this.interCommService); //dijkstra start
+    } else {
+      this.dij.stop();
+    }
+  }
 
-  astar() { }
+  astar() {}
 
-  greedybfs() { }
+  greedybfs() {}
 
   backtracking() {
     if (this.stopAlgo == false) {
@@ -539,7 +547,7 @@ export class GridComponent implements OnInit, AfterViewInit {
       const worker = new Worker("./grid.worker", {
         type: "module",
       });
-      worker.onmessage = ({ data }) => { };
+      worker.onmessage = ({ data }) => {};
       worker.postMessage(this.grid.nativeElement.offsetWidth);
     } else {
     }

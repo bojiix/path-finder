@@ -79,6 +79,24 @@ export interface Speed {
   value: number;
 }
 
+export function is_valid(i, j): boolean {
+  if (
+    i < 0 ||
+    i >= GlobalVariables.verticalGridSize ||
+    j < 0 ||
+    j >= GlobalVariables.horizontalGridSize ||
+    GlobalVariables.paths.find(
+      (obj) => obj.verticalPos == i && obj.horizontalPos == j
+    ) ||
+    (GlobalVariables.freq_table[i][j] != 0 &&
+      GlobalVariables.freq_table[i][j] != "end")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export function addPaths(el) {
   if (el.className == "grid-block" && Array.from(el.children).length == 0) {
     el.style.background = styles["colors-visited1"];
