@@ -8,7 +8,7 @@ import {
   updateShortestPath,
 } from "./globals";
 import { Injectable } from "@angular/core";
-import { VirtualTimeScheduler } from 'rxjs';
+import { VirtualTimeScheduler } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -18,7 +18,7 @@ export class BackTracking {
   currentPath: Array<DragPoint> = [];
   minimum;
 
-  constructor() { }
+  constructor() {}
 
   start(interCommService) {
     this.stopAlgo = false;
@@ -38,10 +38,11 @@ export class BackTracking {
     const result = (value) => {
       console.log(value);
       if (value == true) {
+        GlobalVariables.currentLevelInShortestPath = 1;
         this.currentPath.push(GlobalVariables.startPoint);
         this.minimum =
           GlobalVariables.horizontalGridSize *
-          GlobalVariables.verticalGridSize +
+            GlobalVariables.verticalGridSize +
           1;
         GlobalVariables.colorOffset = GlobalVariables.colorPreset.getColorOffset();
         GlobalVariables.colorIndex = Math.floor(Math.random() * Math.floor(3));
@@ -51,8 +52,8 @@ export class BackTracking {
         ).then((value) => result1(value));
       }
     };
-    if (GlobalVariables.shortestPath.length == 0) {
-      GlobalVariables.currentLevelInShortestPath = 1;
+    if (GlobalVariables.currentLevelInShortestPath == 0) {
+      console.log("sh", GlobalVariables.shortestPath);
       this.firstWave(GlobalVariables.currentLevelInPaths).then((value) =>
         result(value)
       );
