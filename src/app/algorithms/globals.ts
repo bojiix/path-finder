@@ -27,6 +27,7 @@ export function delay(ms: number) {
 export interface DragPoint {
   verticalPos: number;
   horizontalPos: number;
+  cost?: number;
 }
 
 export let RGB = ["R", "G", "B"];
