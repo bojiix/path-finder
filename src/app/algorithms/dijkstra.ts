@@ -31,6 +31,7 @@ export class Dijkstra {
       console.log("done!!!!", GlobalVariables.shortestPath);
       GlobalVariables.shortestPath.reverse();
       updateShortestPath();
+      interCommService.setMessage("reset-button");
     };
 
     if (GlobalVariables.currentLevelInShortestPath == 0) {

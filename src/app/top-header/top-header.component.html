@@ -1,45 +1,55 @@
 <div class="header">
-    <div class="container">
-        <h3 id="title">
-            Pathfinding Visualizer
-        </h3>
-        <div class="horiz-list">
-            <div id="left">
-                <div class="hover">
-                    <div class="list">Algorithms<div class="arrow down"></div></div>
-                    <ul class="dropdown">
-                        <li *ngFor="let item of algorithms; let i = index" value="{{i}}" (click)="setAlgo(item)">{{item}}</li>
-                    </ul>
-                </div>
-                <div class="hover">
-                    <div class="list">Mazes & Patterns<div class="arrow down"></div></div>
-                </div>
-                <div>
-                    Add Bomb
-                </div>
-            </div>
-            <div id="vis-btn" (click)="start_stop()">
-                <div [ngClass]="{'disabled': !isAlgoSelected, 'pause': !toStop}">
-                    {{buttonContent}}
-                </div>
-            </div>
-            <div id="right">
-                <div (click)="clearBoard()">
-                    Clear Board
-                </div>
-                <div (click)="clearWallsAndWeight()">
-                    Clear Walls & Weight
-                </div>
-                <div (click)="clearPath()">
-                    Clear Path
-                </div>
-                <div class="hover">
-                    <div class="list">Speed:{{selectedSpeed}}<div class="arrow down"></div></div>
-                    <ul class="dropdown">
-                        <li *ngFor="let item of speeds" (click)="setSpeed(item)">{{item?.text}}</li>
-                    </ul>
-                </div>
-            </div>
+  <div class="container">
+    <h3 id="title">Pathfinding Visualizer</h3>
+    <div class="horiz-list">
+      <div id="left">
+        <div class="hover">
+          <div class="list">
+            Algorithms
+            <div class="arrow down"></div>
+          </div>
+          <ul class="dropdown">
+            <li
+              *ngFor="let item of algorithms; let i = index"
+              value="{{ i }}"
+              (click)="setAlgo(item)"
+            >
+              {{ item }}
+            </li>
+          </ul>
         </div>
+        <div class="hover">
+          <div class="list">
+            Mazes & Patterns
+            <div class="arrow down"></div>
+          </div>
+        </div>
+        <div>Add Bomb</div>
+      </div>
+      <div id="vis-btn" (click)="start_stop()">
+        <div [ngClass]="{ disabled: !isAlgoSelected, pause: !toStop }">
+          <div>
+            {{ buttonContent }}
+          </div>
+          <div>></div>
+        </div>
+      </div>
+      <div id="right">
+        <div (click)="clearBoard()">Clear Board</div>
+        <div (click)="clearWallsAndWeight()">Clear Walls & Weight</div>
+        <div (click)="clearPath()">Clear Path</div>
+        <div class="hover">
+          <div class="list">
+            Speed:{{ selectedSpeed }}
+            <div class="arrow down"></div>
+          </div>
+          <ul class="dropdown">
+            <li *ngFor="let item of speeds" (click)="setSpeed(item)">
+              {{ item?.text }}
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
